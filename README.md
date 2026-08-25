@@ -18,7 +18,7 @@
 
 ## What it is
 
-weapons from the Meridian Combine, an arms exporter that sells to both sides.
+Weapons from the Meridian Combine, an arms exporter that sells to both sides.
 Anticipate more additions as the pack grows.
 
 ### Air to ground
