@@ -200,6 +200,8 @@ namespace MeridianWorks
 
             if (rounds.Length > 1)
             {
+                MeasureBayFit(hardpoint, mount, root, rounds);
+
                 if (_logged.Add(Where(hardpoint) + "|" + mount.jsonKey + "|multi"))
                     Plugin.Log.LogInfo(
                         $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: {rounds.Length} round(s) left " +
@@ -263,6 +265,63 @@ namespace MeridianWorks
                 $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: the bay doors reach z={bayFront:0.000} " +
                 $"and its round(s) only reached z={noseNow:0.000}, so {rounds.Length} round(s) moved " +
                 $"forward together by {shift:0.000} m, keeping the arrangement the prefab authored.");
+        }
+
+        private static void MeasureBayFit(Hardpoint hardpoint, WeaponMount mount,
+                                          Transform root, MountedMissile[] rounds)
+        {
+            if (!_logged.Add(Where(hardpoint) + "|" + mount.jsonKey + "|fit")) return;
+
+            if (hardpoint?.bayDoors == null || hardpoint.bayDoors.Length == 0) return;
+
+            var doorRenderers = new List<Renderer>();
+            foreach (BayDoor door in hardpoint.bayDoors)
+            {
+                if (door == null) continue;
+                doorRenderers.AddRange(door.GetComponentsInChildren<Renderer>(true));
+            }
+
+            if (!LocalBounds(root, doorRenderers, out Bounds bay)) return;
+            if (!LocalBounds(root, RoundRenderers(rounds), out Bounds block)) return;
+
+            bool tooWide = block.size.x > bay.size.x;
+            bool tooTall = block.size.y > bay.size.y;
+
+            string verdict = (tooWide || tooTall)
+                ? "DOES NOT FIT" + (tooWide ? ", too wide" : "") + (tooTall ? ", too tall" : "")
+                : "fits";
+
+            Plugin.Log.LogInfo(
+                $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: bay fit {verdict}. " +
+                $"Block {block.size.x:0.000} wide x {block.size.y:0.000} tall over " +
+                $"{rounds.Length} round(s); bay doors span {bay.size.x:0.000} x {bay.size.y:0.000}. " +
+                $"Block centre y={block.center.y:0.000}, doors centre y={bay.center.y:0.000}.");
+        }
+
+        private static bool LocalBounds(Transform root, List<Renderer> renderers, out Bounds bounds)
+        {
+            bounds = default;
+            bool any = false;
+
+            foreach (Renderer r in renderers)
+            {
+                if (r == null || !r.enabled) continue;
+
+                Bounds w = r.bounds;
+                for (int c = 0; c < 8; c++)
+                {
+                    var corner = new Vector3(
+                        (c & 1) == 0 ? w.min.x : w.max.x,
+                        (c & 2) == 0 ? w.min.y : w.max.y,
+                        (c & 4) == 0 ? w.min.z : w.max.z);
+
+                    Vector3 local = root.InverseTransformPoint(corner);
+                    if (!any) { bounds = new Bounds(local, Vector3.zero); any = true; }
+                    else bounds.Encapsulate(local);
+                }
+            }
+
+            return any;
         }
 
         private static List<Renderer> RoundRenderers(MountedMissile[] rounds)

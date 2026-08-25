@@ -13,35 +13,33 @@ parents.
 A meridian is a line on a map that belongs to nobody. A company owned jointly by two
 governments cannot be named after either of them, so the founders picked a surveyor's
 abstraction, agreeable precisely because it meant nothing. It was a diplomatic
-convenience at the time and it turned out to be the most valuable thing the firm owns.
+convenience at the time and it turned out to be worth more than the plant.
 
 Its position has never been dressed up as principle: it sells to buyers, not to causes.
 Both customers find that easier to tolerate than the alternative, which is the other side
 having the hardware and them not.
 
-## Why nothing it makes carries a national marking
+## How its weapons are named
 
-Every marking on a Combine airframe is a handling legend or a hazard warning. There is no
-insignia, no flag, no country of origin, and nothing in the paint that identifies the
-firing side.
+Combine stores carry a class prefix and a number, the way most ordnance does. The ones
+that earn a name take a tree or a plant, chosen by the works rather than the customer.
 
-That is not modesty. Naming either founder would lose half the customer base, and there
-is no third name available that does not imply one or the other. So a Boscali strike crew
-and a Primevan strike crew load the same round, off the same line, under the same
-stencils, and each will be shot at by it.
+The habit started as a filing convention and stuck because crews used the names anyway.
+A round with a name gets asked for by name.
 
 ## The catalogue
 
-The three weapons in this pack are the Combine's guided anti-surface line, and they are
-priced the way an export catalogue is priced rather than the way a national arsenal is.
+**AGM-84 Hornbeam.** Heavy, optically guided, and the weapon the Combine puts in front of
+a buyer first. A television seeker is locked on before release, a datalink refreshes the
+aimpoint in flight, and the warhead is built for hardened structures rather than vehicles.
+Hornbeam is a hard, dense wood that blunts tools, which the works thought was funny.
 
-The **AGM-84** is the expensive one and the argument for the rest: a television seeker
-locked on before release, a datalink to refresh the aimpoint, and the heaviest warhead
-the firm builds outside a cruise weapon.
+**AGM-57L Alder.** Laser guided, with a blast warhead sized for soft and lightly armoured
+targets. It carries no seeker that can find anything by itself and rides a designation
+held by somebody else, which makes it cheap to build and demanding to use. The Combine has
+never pretended otherwise in its own literature.
 
-The **AGM-57L** and **AGM-33L** are the other half of the pitch. Neither carries a seeker
-that can find anything on its own. Both ride a designation held by somebody else, which
-is a cheaper weapon to build and a harder one to use, and the Combine has never pretended
-otherwise in its own literature. The AGM-33L in particular exists because a customer
-flying helicopters and light attack aircraft wanted a guided answer to armour at a price
-a fire-and-forget round could not reach.
+**AGM-33L Bramble.** The light laser round, sized for helicopters and light attack
+aircraft. It exists because a customer wanted a guided answer to armour at a price that
+fire and forget could not reach, and was willing to hold the laser to get it. Bramble
+because it is small, cheap, and comes in quantity.

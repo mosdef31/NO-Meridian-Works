@@ -10,7 +10,7 @@ namespace MeridianWorks
     internal static class DesignationCircleCap
     {
 
-        internal const float CapMetres = 15000f;
+        internal const float MaxArcDegrees = 12f;
 
         private static readonly FieldInfo? FOuterCircle =
             AccessTools.Field(typeof(HUDLaserGuidedState), "outerCircle");
@@ -71,8 +71,8 @@ namespace MeridianWorks
             float minRange = (float)FMinRange!.GetValue(state);
             float minAlignment = (float)FMinAlignment!.GetValue(state);
 
-            float cappedDist = Mathf.Min(targetDist, CapMetres);
-            float cappedArc = Mathf.Min(minAlignment, Mathf.Max(cappedDist, minRange) * 0.002f);
+            float gameArc = Mathf.Min(minAlignment, Mathf.Max(targetDist, minRange) * 0.002f);
+            float cappedArc = Mathf.Min(gameArc, MaxArcDegrees);
 
             outer.transform.localScale = 50f / fov * (cappedArc / 8f) * Vector3.one;
         }
