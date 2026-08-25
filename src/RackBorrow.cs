@@ -22,13 +22,22 @@ namespace MeridianWorks
 
             if (spawned.transform.Find(ContainerName) != null) return;
 
+            if (mount.missileBay)
+            {
+                if (_logged.Add((mount.jsonKey ?? spawned.name) + "|bay"))
+                    Plugin.Diag(
+                        $"[Meridian] {mount.jsonKey}: a bay mount, so no rack was borrowed and the " +
+                        "rounds stay exactly where the prefab authored them.");
+                return;
+            }
+
             List<Transform> stations = Stations(spawned.transform);
             if (stations.Count < 2) return;
 
             if (HasOwnStructure(spawned.transform))
             {
                 if (_logged.Add(mount.jsonKey ?? spawned.name))
-                    Plugin.Log.LogInfo(
+                    Plugin.Diag(
                         $"[Meridian] {mount.jsonKey}: the mounted prefab carries its own rack geometry, " +
                         "so none was borrowed.");
                 return;
@@ -98,7 +107,7 @@ namespace MeridianWorks
                         p.x = centre + (p.x - centre) * spread;
                         t.localPosition = p;
                     }
-                    Plugin.Log.LogInfo(
+                    Plugin.Diag(
                         $"[Meridian] {mount.jsonKey}: the donor's stations were {tightest:0.00} m apart " +
                         $"and this round is {need:0.00} m across, so they were spread by x{spread:0.00}.");
                 }
@@ -112,7 +121,7 @@ namespace MeridianWorks
 
             if (!_logged.Add(mount.jsonKey ?? spawned.name)) return;
 
-            Plugin.Log.LogInfo(
+            Plugin.Diag(
                 $"[Meridian] {mount.jsonKey}: borrowed a {donor.Stations.Count}-station rack from " +
                 $"'{donor.Key}' ({donor.MassPerRound:0} kg a round against our {(mount.info != null ? mount.info.massPerRound : 0f):0}) " +
                 $"- {cloned} piece(s) of structure ({renderers} renderer(s)), {moved} round(s) moved " +
@@ -228,7 +237,7 @@ namespace MeridianWorks
             if (_donorsLogged || found.Count == 0) return found;
             _donorsLogged = true;
 
-            Plugin.Log.LogInfo(
+            Plugin.Diag(
                 $"[Meridian] Rack donors found: " +
                 string.Join(", ", found
                     .OrderBy(d => d.Stations.Count)

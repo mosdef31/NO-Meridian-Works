@@ -48,7 +48,7 @@ namespace MeridianWorks
             _applied[designator] = delta;
 
             if (_logged.Add(aircraft.definition != null ? aircraft.definition.jsonKey : "?"))
-                Plugin.Log.LogInfo(
+                Plugin.Diag(
                     $"[Meridian] {(aircraft.definition != null ? aircraft.definition.unitName : "aircraft")}: " +
                     $"carrying Meridian rounds, so lased targets went {current} -> {current + delta} " +
                     $"(floor {Floor}, delta {delta}).");

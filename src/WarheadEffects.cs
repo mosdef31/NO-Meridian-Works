@@ -112,7 +112,7 @@ namespace MeridianWorks
 
             if (missing.Length == 0)
             {
-                Plugin.Log.LogInfo($"[Meridian] {who}: warhead effects all set in the bundle.");
+                Plugin.Diag($"[Meridian] {who}: warhead effects all set in the bundle.");
                 return;
             }
 
@@ -138,7 +138,7 @@ namespace MeridianWorks
 
             fWarhead.SetValue(missile, warhead);
 
-            Plugin.Log.LogInfo(
+            Plugin.Diag(
                 $"[Meridian] {who}: filled {filled} of {missing.Length} unset warhead effect(s) " +
                 $"({string.Join(", ", missing)}) from '{donorName}'.");
 

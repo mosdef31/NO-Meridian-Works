@@ -93,7 +93,7 @@ namespace MeridianWorks
                 if (f.FieldType == typeof(int)) f.SetValue(target, Mathf.RoundToInt(value));
                 else f.SetValue(target, value);
 
-                Plugin.Log.LogInfo(
+                Plugin.Diag(
                     $"[Meridian] {key}: {field} {before} -> {f.GetValue(target)} " +
                     $"(on {target.GetType().Name}, from {FileName}).");
                 return;

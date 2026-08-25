@@ -82,7 +82,7 @@ namespace MeridianWorks
             }
 
             if (faults == 0)
-                Plugin.Log.LogInfo(
+                Plugin.Diag(
                     $"[Meridian] Name gate clean: {EncyclopediaRegistration.ResolvedMounts.Count} " +
                     $"mount(s) and {EncyclopediaRegistration.ResolvedMissiles.Count} missile " +
                     "definition(s), no stray whitespace and no name mismatch.");

@@ -16,12 +16,22 @@ namespace MeridianWorks
         public static Plugin? Instance { get; private set; }
         public static ManualLogSource Log { get; private set; } = null!;
 
+        internal static bool Diagnostics =>
+            PluginConfig.DiagnosticsEntry != null && PluginConfig.DiagnosticsEntry.Value;
+
+        internal static void Diag(string message)
+        {
+            if (Diagnostics) Log.LogInfo(message);
+        }
+
         private Harmony? _harmony;
 
         private void Awake()
         {
             Instance = this;
             Log = Logger;
+
+            PluginConfig.Bind(Config);
 
             _harmony = new Harmony(PluginInfo.GUID);
             _harmony.PatchAll();
@@ -69,6 +79,11 @@ namespace MeridianWorks
                 WarheadEffects.RunOnce();
                 NameGate.RunOnce();
 
+                if (Plugin.Diagnostics)
+                {
+                    IconProbe.RunOnce();
+                    LoadoutProbe.RunOnce();
+                }
             }
             catch (Exception ex)
             {

@@ -89,7 +89,7 @@ namespace MeridianWorks
 
             foreach (var kv in Rules)
             {
-                Plugin.Log.LogInfo(
+                Plugin.Diag(
                     $"[Meridian] Stub-tip rule armed on '{kv.Key}': set(s) " +
                     $"{string.Join(", ", Array.ConvertAll(kv.Value.Blocked, b => b.ToString()))} are blocked " +
                     $"while set {kv.Value.Trigger} carries {string.Join(" or ", new List<string>(kv.Value.Wide).ToArray())}.");

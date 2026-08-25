@@ -65,6 +65,19 @@ number neither of them intended.
 
 The asset bundle is embedded in the DLL, so there is one file and nothing to keep in step.
 
+## Settings
+
+One setting, in `BepInEx/config/com.meridianworks.cfg`, and it is off unless you turn it
+on.
+
+| Setting | Default | What it does |
+|---|---|---|
+| `Diagnostics` | `false` | Writes detailed lines to the BepInEx log describing how each Meridian store is assembled and mounted. |
+
+Turn it on if you are reporting a problem with how a weapon looks or where it sits, then
+send the log with your report. Leave it off otherwise; it costs you nothing either way,
+and problems are still logged without it.
+
 ## AI use
 
 I use an AI agent to help with coding, refactoring, asset modification, and authoring

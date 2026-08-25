@@ -43,7 +43,7 @@ namespace MeridianWorks
             if (existing.Count > 0 && !borrowedRack)
             {
                 if (_logged.Add(Where(hardpoint) + "|" + mount.jsonKey))
-                    Plugin.Log.LogInfo(
+                    Plugin.Diag(
                         $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: the mounted prefab carries its own structure, " +
                         "so no pylon was borrowed and nothing was reseated.");
                 return;
@@ -128,7 +128,7 @@ namespace MeridianWorks
 
             if (!_logged.Add(Where(hardpoint) + "|" + mount.jsonKey)) return;
 
-            Plugin.Log.LogInfo(
+            Plugin.Diag(
                 $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: borrowed the pylon from '{donor.Key}' " +
                 $"({renderers} renderer(s)), {stubNote}" +
                 (rack != null ? ", with the borrowed rack slid under it" : "") +
@@ -154,7 +154,7 @@ namespace MeridianWorks
 
                 if (!drawn && _logged.Add(Where(hardpoint) + "|stub-hidden"))
                 {
-                    Plugin.Log.LogInfo(
+                    Plugin.Diag(
                         $"[Meridian] {Where(hardpoint)}: this hardpoint carries a stub renderer " +
                         $"('{hardpoint.Pylon.name}') that is NOT being drawn " +
                         $"(enabled={hardpoint.Pylon.enabled}, " +
@@ -203,7 +203,7 @@ namespace MeridianWorks
                 MeasureBayFit(hardpoint, mount, root, rounds);
 
                 if (_logged.Add(Where(hardpoint) + "|" + mount.jsonKey + "|multi"))
-                    Plugin.Log.LogInfo(
+                    Plugin.Diag(
                         $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: {rounds.Length} round(s) left " +
                         "exactly where the aircraft's hardpoint puts them. Bay doors are shared " +
                         "between sets, so they cannot say which end of the bay this set belongs at.");
@@ -244,7 +244,7 @@ namespace MeridianWorks
             {
 
                 if (_logged.Add(Where(hardpoint) + "|" + mount.jsonKey + "|already"))
-                    Plugin.Log.LogInfo(
+                    Plugin.Diag(
                         $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: the bay doors reach " +
                         $"z={bayFront:0.000} and the round(s) already reach z={noseNow:0.000}, so " +
                         "nothing was moved.");
@@ -261,7 +261,7 @@ namespace MeridianWorks
 
             if (!_logged.Add(Where(hardpoint) + "|" + mount.jsonKey + "|seated")) return;
 
-            Plugin.Log.LogInfo(
+            Plugin.Diag(
                 $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: the bay doors reach z={bayFront:0.000} " +
                 $"and its round(s) only reached z={noseNow:0.000}, so {rounds.Length} round(s) moved " +
                 $"forward together by {shift:0.000} m, keeping the arrangement the prefab authored.");
@@ -286,7 +286,7 @@ namespace MeridianWorks
 
             bool tooWide = block.size.x > bay.size.x;
 
-            Plugin.Log.LogInfo(
+            Plugin.Diag(
                 $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: bay fit " +
                 $"{(tooWide ? "TOO WIDE" : "width ok")}. " +
                 $"Block {block.size.x:0.000} wide x {block.size.z:0.000} long over " +
@@ -510,7 +510,7 @@ namespace MeridianWorks
             if (_donorsLogged || found.Count == 0) return found;
             _donorsLogged = true;
 
-            Plugin.Log.LogInfo(
+            Plugin.Diag(
                 $"[Meridian] Pylon donors found: {found.Count}, " +
                 $"including {string.Join(", ", found.Take(6).Select(d => $"'{d.Key}' ({d.WeaponName})").ToArray())}.");
             return found;

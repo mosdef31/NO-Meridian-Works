@@ -280,7 +280,7 @@ namespace MeridianWorks
 
             if (_donorLoggedFor.Add(ourKey + "/" + role))
             {
-                Plugin.Log.LogInfo(
+                Plugin.Diag(
                     $"[Meridian] {ourKey}: {role} donor '{best.Key}' (burn {best.Burn:0.#}s) " +
                     $"{(named != null ? "as picked by the owner" : "by burn time")}, out of " +
                     $"{donors.Count} candidate(s) with effects.");
@@ -435,7 +435,7 @@ namespace MeridianWorks
             string key = Key(ours);
             if (!_appliedLogged.Add(key)) return;
 
-            Plugin.Log.LogInfo(
+            Plugin.Diag(
                 $"[Meridian] {key}: borrowed a plume from '{donor.Key}'" +
                 (recipe.HasFlames
                     ? " and " + recipe.Flames!.Length + " flame layer(s): " +
@@ -487,7 +487,7 @@ namespace MeridianWorks
             if (_scaleLogged) return;
             _scaleLogged = true;
 
-            Plugin.Log.LogInfo(
+            Plugin.Diag(
                 $"[Meridian] The borrowed plume is drawn at x{scale:0.00}, so {lights.Count} light(s) " +
                 $"were brought down with it - range x{scale:0.00}, intensity x{lightScale:0.00} - " +
                 $"along with {ribbons.Length} trail ribbon(s). Both are world-space and ignore the " +
@@ -519,7 +519,7 @@ namespace MeridianWorks
 
             if (_spaceLogged || rebased == 0) return;
             _spaceLogged = true;
-            Plugin.Log.LogInfo(
+            Plugin.Diag(
                 $"[Meridian] {rebased} of the {systems.Length} borrowed system(s) from '{donorKey}' " +
                 "simulated in CUSTOM space, anchored to a transform on the donor rather than to our " +
                 "round, and were re-based. That is the plume that starts behind the aircraft.");

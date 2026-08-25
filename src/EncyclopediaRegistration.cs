@@ -72,7 +72,7 @@ namespace MeridianWorks
             if (!added || _addedLogged) return;
 
             _addedLogged = true;
-            Plugin.Log.LogInfo(
+            Plugin.Diag(
                 $"[Meridian] Registered into Encyclopedia - {_mounts.Count} mount(s): " +
                 string.Join(", ", _mounts.Where(m => m != null).Select(m => $"'{m.jsonKey}'").ToArray()) +
                 $"; {_defs.Count} missile(s): " +
@@ -104,7 +104,7 @@ namespace MeridianWorks
                 if (afterLoad != null)
                 {
                     afterLoad.Invoke(enc, null);
-                    Plugin.Log.LogInfo("[Meridian] Forced Encyclopedia.AfterLoad() to index late registration.");
+                    Plugin.Diag("[Meridian] Forced Encyclopedia.AfterLoad() to index late registration.");
                 }
                 else
                 {
@@ -124,7 +124,7 @@ namespace MeridianWorks
             }
 
             if (ok)
-                Plugin.Log.LogInfo($"[Meridian] All {_mounts.Count} mount(s) are in WeaponLookup.");
+                Plugin.Diag($"[Meridian] All {_mounts.Count} mount(s) are in WeaponLookup.");
             return ok;
         }
 
@@ -511,7 +511,7 @@ namespace MeridianWorks
                 int count;
                 try { count = bundle.GetAllAssetNames().Length; }
                 catch { continue; }
-                Plugin.Log.LogInfo($"[Meridian]   loaded bundle '{bundle.name}' with {count} asset(s).");
+                Plugin.Diag($"[Meridian]   loaded bundle '{bundle.name}' with {count} asset(s).");
             }
         }
     }
