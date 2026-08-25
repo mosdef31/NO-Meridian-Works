@@ -25,16 +25,16 @@ Anticipate more additions as the pack grows.
 
 | Weapon | Guidance | Range | AP | HE | Mass | Cost |
 |---|---|---|---|---|---|---|
-| AGM-84 Hornbeam | Optical, datalink | 20 km | 1100 | 330 | 660 kg | $1.1m |
-| AGM-57L Alder | Laser | 15 km | 400 | 220 | 520 kg | $550k |
-| AGM-33L Bramble | Laser | 12 km | 250 | 90 | 300 kg | $300k |
+| AGM-84 Warhawk | Optical, datalink | 20 km | 1100 | 330 | 660 kg | $1.1m |
+| AGM-57L Bulldog | Laser | 15 km | 400 | 220 | 520 kg | $550k |
+| AGM-33L Hornet | Laser | 12 km | 250 | 90 | 300 kg | $300k |
 
-- **AGM-84 Hornbeam:** locked on before release and needs nothing from you afterwards. A
+- **AGM-84 Warhawk:** locked on before release and needs nothing from you afterwards. A
   datalink keeps the aimpoint fresh, so you can shoot from further out than you can
   identify. The heavy answer to hardened targets.
-- **AGM-57L Alder:** rides a laser somebody is holding, not necessarily you. Big blast
+- **AGM-57L Bulldog:** rides a laser somebody is holding, not necessarily you. Big blast
   warhead, and cheaper and lighter than anything fire and forget in the same role.
-- **AGM-33L Bramble:** the light one, for helicopters and light attack aircraft. A guided
+- **AGM-33L Hornet:** the light one, for helicopters and light attack aircraft. A guided
   answer to armour at a price nothing fire and forget reaches.
 
 The two laser rounds need the target lit until impact. That is the trade.
@@ -43,9 +43,9 @@ The two laser rounds need the target lit until impact. That is the trade.
 
 | Weapon | Pylon | Bay |
 |---|---|---|
-| AGM-84 Hornbeam | single, twin | four-round, six-round |
-| AGM-57L Alder | single, twin | single |
-| AGM-33L Bramble | single, twin, triple | single, twin |
+| AGM-84 Warhawk | single, twin | four-round, six-round |
+| AGM-57L Bulldog | single, twin | single |
+| AGM-33L Hornet | single, twin, triple | single, twin |
 
 ## Carrying these raises your lased target limit
 

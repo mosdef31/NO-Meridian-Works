@@ -162,7 +162,7 @@ namespace MeridianWorks
 
                 { "MeridianAGM57L_Missile",
                     new Recipe("AGM-68", 0f,
-                        new FlameLayer("AGM-99", 0.6f)) },
+                        new FlameLayer("AGM-48", 0.6f)) },
 
                 { "MeridianAGM33L_Missile",
                     new Recipe("AGM-68", 8f,
@@ -323,6 +323,8 @@ namespace MeridianWorks
             var lights = new List<Light>();
             var audio = new List<AudioSource>();
 
+            var resolvedFlames = new List<string>();
+
             FieldInfo? fTrailSystem = AccessTools.Field(typeof(TrailEmitter), "trailSystem");
             FieldInfo? fEmitTransform = AccessTools.Field(typeof(TrailEmitter), "emitTransform");
 
@@ -377,6 +379,8 @@ namespace MeridianWorks
                     if (fd == null) continue;
 
                     float flameScale = PlumeScale(nozzle) * layer.Scale;
+
+                    if (i == 0) resolvedFlames.Add(fd.Value.Key);
 
                     GameObject fc = UnityEngine.Object.Instantiate(fd.Value.Fx.gameObject, parent);
                     fc.name = $"Nozzle{i}_Flame{f}";
@@ -435,8 +439,11 @@ namespace MeridianWorks
                 $"[Meridian] {key}: borrowed a plume from '{donor.Key}'" +
                 (recipe.HasFlames
                     ? " and " + recipe.Flames!.Length + " flame layer(s): " +
-                      string.Join(", ", recipe.Flames!.Select(x =>
-                          x.Donor + (x.Object != null ? $" ({x.Object})" : "") +
+                      string.Join(", ", recipe.Flames!.Select((x, n) =>
+                          (n < resolvedFlames.Count && !resolvedFlames[n].Contains(x.Donor)
+                              ? $"{x.Donor} FELL BACK TO '{resolvedFlames[n]}'"
+                              : x.Donor) +
+                          (x.Object != null ? $" ({x.Object})" : "") +
                           $" x{x.Scale:0.00}")) +
                       (Mathf.Abs(recipe.SplayDegrees) > 0.01f
                           ? $", splayed {recipe.SplayDegrees:0.#} deg/nozzle" : "")

@@ -8,9 +8,9 @@
 
 | Weapon | Model | Sketchfab |
 |---|---|---|
-| AGM-84 Hornbeam | Kh-29TD | `su-kh-29td-missile-war-thunder` |
-| AGM-57L Alder | AS-30L | `fr-as-30l-nord-missile` |
-| AGM-33L Bramble | Kh-25ML | `su-kh-25ml` |
+| AGM-84 Warhawk | Kh-29TD | `su-kh-29td-missile-war-thunder` |
+| AGM-57L Bulldog | AS-30L | `fr-as-30l-nord-missile` |
+| AGM-33L Hornet | Kh-25ML | `su-kh-25ml` |
 
 The models were retextured and reworked for this pack. They remain KojfDiscord's work
 under CC BY 4.0.

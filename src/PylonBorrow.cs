@@ -285,17 +285,14 @@ namespace MeridianWorks
             if (!LocalBounds(root, RoundRenderers(rounds), out Bounds block)) return;
 
             bool tooWide = block.size.x > bay.size.x;
-            bool tooTall = block.size.y > bay.size.y;
-
-            string verdict = (tooWide || tooTall)
-                ? "DOES NOT FIT" + (tooWide ? ", too wide" : "") + (tooTall ? ", too tall" : "")
-                : "fits";
 
             Plugin.Log.LogInfo(
-                $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: bay fit {verdict}. " +
-                $"Block {block.size.x:0.000} wide x {block.size.y:0.000} tall over " +
-                $"{rounds.Length} round(s); bay doors span {bay.size.x:0.000} x {bay.size.y:0.000}. " +
-                $"Block centre y={block.center.y:0.000}, doors centre y={bay.center.y:0.000}.");
+                $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: bay fit " +
+                $"{(tooWide ? "TOO WIDE" : "width ok")}. " +
+                $"Block {block.size.x:0.000} wide x {block.size.z:0.000} long over " +
+                $"{rounds.Length} round(s), standing {block.size.y:0.000} tall; " +
+                $"bay doors span {bay.size.x:0.000} wide x {bay.size.z:0.000} long. " +
+                $"Block bottom y={block.min.y:0.000}, door plane y={bay.center.y:0.000}.");
         }
 
         private static bool LocalBounds(Transform root, List<Renderer> renderers, out Bounds bounds)
@@ -307,15 +304,22 @@ namespace MeridianWorks
             {
                 if (r == null || !r.enabled) continue;
 
-                Bounds w = r.bounds;
+                Mesh? mesh = (r as MeshRenderer) != null
+                    ? r.GetComponent<MeshFilter>()?.sharedMesh
+                    : (r as SkinnedMeshRenderer)?.sharedMesh;
+                if (mesh == null) continue;
+
+                Bounds mb = mesh.bounds;
+                Matrix4x4 toWorld = r.localToWorldMatrix;
+
                 for (int c = 0; c < 8; c++)
                 {
                     var corner = new Vector3(
-                        (c & 1) == 0 ? w.min.x : w.max.x,
-                        (c & 2) == 0 ? w.min.y : w.max.y,
-                        (c & 4) == 0 ? w.min.z : w.max.z);
+                        (c & 1) == 0 ? mb.min.x : mb.max.x,
+                        (c & 2) == 0 ? mb.min.y : mb.max.y,
+                        (c & 4) == 0 ? mb.min.z : mb.max.z);
 
-                    Vector3 local = root.InverseTransformPoint(corner);
+                    Vector3 local = root.InverseTransformPoint(toWorld.MultiplyPoint3x4(corner));
                     if (!any) { bounds = new Bounds(local, Vector3.zero); any = true; }
                     else bounds.Encapsulate(local);
                 }
