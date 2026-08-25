@@ -18,8 +18,8 @@
 
 ## What it is
 
-Guided weapons from the Meridian Combine, an arms exporter that sells to both sides. The
-pack grows over time; this is what is in it now.
+weapons from the Meridian Combine, an arms exporter that sells to both sides.
+Anticipate more additions as the pack grows.
 
 ### Air to ground
 
