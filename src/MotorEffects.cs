@@ -21,6 +21,7 @@ namespace MeridianWorks
             AccessTools.Field(typeof(Missile), "effectsTransform");
 
         private static readonly HashSet<string> _appliedLogged = new HashSet<string>();
+        private static readonly HashSet<string> _seatingLogged = new HashSet<string>();
 
         internal static void Apply(Missile ours)
         {
@@ -74,7 +75,60 @@ namespace MeridianWorks
             Recipes.TryGetValue(ourKey, out Recipe recipe);
 
             CloneOntoNozzles(ours, motor, pick.Value, recipe,
-                             nozzles, container.transform, silenced);
+                             nozzles, container.transform, silenced, 0);
+
+            for (int stage = 1; stage < motors.Length; stage++)
+            {
+                object? later = motors.GetValue(stage);
+                if (later == null || MotorHasEffects(later)) continue;
+
+                float wantBurn = MotorBurn(later);
+                Donor? stagePick = ChooseStageDonor(ourKey, stage, wantBurn);
+                if (stagePick == null)
+                {
+                    Plugin.Log.LogWarning(
+                        $"[Meridian] {ourKey}: no stock missile carries a stage {stage} with " +
+                        "effects, so that stage burns invisibly. The round still flies.");
+                    continue;
+                }
+
+                var stageContainer = new GameObject(ContainerName + "_stage" + stage);
+                stageContainer.transform.SetParent(ours.transform, false);
+
+                CloneOntoNozzles(ours, later, stagePick.Value, recipe,
+                                 nozzles, stageContainer.transform, 0, stage);
+            }
+        }
+
+        private static float MotorBurn(object motor) =>
+            AccessTools.Field(motor.GetType(), "burnTime")?.GetValue(motor) is float b ? b : 0f;
+
+        private static Donor? ChooseStageDonor(string ourKey, int stage, float wantBurn)
+        {
+            Donor? best = null;
+            float bestErr = float.MaxValue;
+
+            foreach (Donor d in FindDonors())
+            {
+                if (_fMotors?.GetValue(d.Missile) is not Array dm || dm.Length <= stage) continue;
+
+                object? dMotor = dm.GetValue(stage);
+                if (dMotor == null || !MotorHasEffects(dMotor)) continue;
+
+                float err = Mathf.Abs(MotorBurn(dMotor) - wantBurn);
+                if (err >= bestErr) continue;
+                bestErr = err;
+                best = d;
+            }
+
+            if (best != null && _donorLoggedFor.Add(ourKey + "/stage" + stage))
+            {
+                Plugin.Diag(
+                    $"[Meridian] {ourKey}: stage {stage} donor '{best.Value.Key}', matched on that " +
+                    $"stage's burn ({wantBurn:0.#}s wanted, {bestErr:0.#}s off).");
+            }
+
+            return best;
         }
 
         private static bool IsOurs(Missile m)
@@ -169,6 +223,28 @@ namespace MeridianWorks
                         new FlameLayer("AAM-29", 1f, "FireParticlesBooster")) },
             };
 
+        private readonly struct Trim
+        {
+            internal Trim(float aft, float width = 1f) { Aft = aft; Width = width; }
+
+            internal float Aft { get; }
+
+            internal float Width { get; }
+        }
+
+        private static readonly Dictionary<string, Trim> Trims =
+            new Dictionary<string, Trim>
+            {
+
+                { "MeridianAAM41_Missile/1", new Trim(0.50f, 0.70f) },
+
+                { "MeridianARAD72_Missile/1", new Trim(0.20f) },
+                { "MeridianAAM63_Missile/1",  new Trim(0.20f) },
+            };
+
+        private static Trim TrimFor(string ourKey, int stage) =>
+            Trims.TryGetValue(ourKey + "/" + stage, out Trim t) ? t : new Trim(0f);
+
         private static readonly string[] FlameWords =
             { "fire", "flame", "muzzle", "ramjet", "fwoosh", "flash", "spark" };
 
@@ -206,11 +282,14 @@ namespace MeridianWorks
             }
         }
 
-        private static void SeatFlame(GameObject clone, Transform nozzle,
-                                      Quaternion splay, float scale)
+        private static void SeatBorrowed(GameObject clone, Donor donor, Transform nozzle,
+                                         Quaternion splay, float scale)
         {
-            clone.transform.localRotation = splay;
-            clone.transform.localScale = Vector3.one * scale;
+
+            Quaternion donorLocal = Quaternion.Inverse(donor.Missile.transform.rotation)
+                                    * donor.Fx.rotation;
+
+            clone.transform.localRotation = donorLocal * splay;
 
             Vector3 origin = Vector3.zero;
             float back = float.MaxValue;
@@ -222,11 +301,11 @@ namespace MeridianWorks
             }
 
             clone.transform.localPosition =
-                nozzle.localPosition - (splay * (origin * scale));
+                nozzle.localPosition - (clone.transform.localRotation * (origin * scale));
         }
 
-        private static Quaternion SplayForFlame(Transform nozzle, int index, float degrees) =>
-            Splay(nozzle, index, -degrees);
+        private static bool PointsAft(Missile ours, GameObject clone) =>
+            ours.transform.InverseTransformDirection(-clone.transform.forward).z < 0f;
 
         private static Quaternion Splay(Transform nozzle, int index, float degrees)
         {
@@ -313,7 +392,8 @@ namespace MeridianWorks
 
         private static void CloneOntoNozzles(Missile ours, object? motor, Donor donor,
                                              Recipe recipe,
-                                             List<Transform> nozzles, Transform parent, int silenced)
+                                             List<Transform> nozzles, Transform parent, int silenced,
+                                             int stage)
         {
             if (motor == null) return;
 
@@ -324,6 +404,7 @@ namespace MeridianWorks
             var audio = new List<AudioSource>();
 
             var resolvedFlames = new List<string>();
+            var seating = new List<string>();
 
             FieldInfo? fTrailSystem = AccessTools.Field(typeof(TrailEmitter), "trailSystem");
             FieldInfo? fEmitTransform = AccessTools.Field(typeof(TrailEmitter), "emitTransform");
@@ -333,19 +414,34 @@ namespace MeridianWorks
                 Transform nozzle = nozzles[i];
 
                 Quaternion splay = Splay(nozzle, i, recipe.SplayDegrees);
-                Quaternion flameSplay = SplayForFlame(nozzle, i, recipe.SplayDegrees);
 
                 GameObject clone = UnityEngine.Object.Instantiate(donor.Fx.gameObject, parent);
                 clone.name = $"Nozzle{i}_Plume";
 
                 if (recipe.HasFlames) KeepRole(clone, keepFlame: false, onlyNamed: null);
 
-                clone.transform.localPosition = nozzle.localPosition;
-                clone.transform.localRotation = nozzle.localRotation * splay;
-                clone.transform.localScale = Vector3.one * PlumeScale(nozzle);
+                Trim trim = TrimFor(ourKeyForLog, stage);
+
+                clone.transform.localScale = Vector3.one * (PlumeScale(nozzle) * trim.Width);
+                SeatBorrowed(clone, donor, nozzle, splay, PlumeScale(nozzle) * trim.Width);
+
+                if (Mathf.Abs(trim.Aft) > 0.0001f)
+                    clone.transform.localPosition += new Vector3(0f, 0f, -trim.Aft);
+
                 clone.SetActive(true);
 
                 NormalizeSimulationSpace(clone, donor.Key);
+
+                Vector3 seatLocal = ours.transform.InverseTransformPoint(clone.transform.position);
+                Vector3 seatFwd = ours.transform.InverseTransformDirection(clone.transform.forward);
+                bool aft = PointsAft(ours, clone);
+                seating.Add(
+                    (Mathf.Abs(trim.Aft) > 0.0001f || Mathf.Abs(trim.Width - 1f) > 0.0001f
+                        ? $"trim aft {trim.Aft:0.##}m width x{trim.Width:0.##} | " : "") +
+                    $"n{i} '{nozzle.name}' nozzleLocal=({nozzle.localPosition.x:0.00},{nozzle.localPosition.y:0.00},{nozzle.localPosition.z:0.00})" +
+                    $" seat=({seatLocal.x:0.00},{seatLocal.y:0.00},{seatLocal.z:0.00})" +
+                    $" fwd=({seatFwd.x:0.00},{seatFwd.y:0.00},{seatFwd.z:0.00})" +
+                    (aft ? " AFT" : " **POINTS FORWARD**"));
 
                 var cloneParticles = clone.GetComponentsInChildren<ParticleSystem>(true)
                     .Where(x => x.gameObject.activeInHierarchy).ToList();
@@ -387,7 +483,8 @@ namespace MeridianWorks
                     KeepRole(fc, keepFlame: true, onlyNamed: layer.Object);
                     fc.SetActive(true);
 
-                    SeatFlame(fc, nozzle, flameSplay, flameScale);
+                    fc.transform.localScale = Vector3.one * flameScale;
+                    SeatBorrowed(fc, fd.Value, nozzle, splay, flameScale);
                     NormalizeSimulationSpace(fc, fd.Value.Key);
 
                     var flameParticles = fc.GetComponentsInChildren<ParticleSystem>(true)
@@ -427,12 +524,33 @@ namespace MeridianWorks
                 }
             }
 
+            float burn = MotorBurn(motor);
+            int looped = 0;
+            foreach (ParticleSystem ps in particles)
+            {
+                if (ps == null) continue;
+                ParticleSystem.MainModule main = ps.main;
+                if (main.loop || main.duration >= burn) continue;
+                main.loop = true;
+                looped++;
+            }
+
             SetMotorArray(motor, "particleSystems", particles.ToArray());
             SetMotorArray(motor, "trailEmitters", trails.ToArray());
             SetMotorArray(motor, "lights", lights.ToArray());
             SetMotorArray(motor, "audioSources", audio.ToArray());
 
             string key = Key(ours);
+
+            if (_seatingLogged.Add(key + "/stage" + stage))
+                Plugin.Diag(
+                    $"[Meridian] PLUME {key} stage {stage}: donor '{donor.Key}', container " +
+                    $"'{parent.name}' under '{(parent.parent == null ? "<root>" : parent.parent.name)}' " +
+                    $"localPos=({parent.localPosition.x:0.00},{parent.localPosition.y:0.00},{parent.localPosition.z:0.00}) " +
+                    $"localEuler=({parent.localEulerAngles.x:0.#},{parent.localEulerAngles.y:0.#},{parent.localEulerAngles.z:0.#}) " +
+                    $"| burn {burn:0.#}s, {looped} system(s) set looping " +
+                    $"| {string.Join(" | ", seating)}");
+
             if (!_appliedLogged.Add(key)) return;
 
             Plugin.Diag(

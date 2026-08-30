@@ -42,10 +42,14 @@ namespace MeridianWorks
 
         internal static IList<MissileDefinition> ResolvedMissiles => _defs;
 
+        private static bool _hairpinPlaced;
+
         internal static void EnsureInLists(Encyclopedia enc)
         {
             if (enc == null) return;
             if (!TryResolveAssets()) return;
+
+            TurnRateCompat.Apply(_defs);
 
             StatOverrides.ApplyIfPresent(_defs);
 
@@ -67,6 +71,36 @@ namespace MeridianWorks
                 if (ContainsMissile(enc, def)) continue;
                 enc.missiles.Add(def);
                 added = true;
+            }
+
+            if (HairpinPod.Build(enc))
+            {
+                if (HairpinPod.Definition is MissileDefinition hdef
+                    && enc.missiles != null && !ContainsMissile(enc, hdef))
+                {
+                    enc.missiles.Add(hdef);
+                    added = true;
+                }
+
+                if (HairpinPod.Mount is WeaponMount hmount
+                    && enc.weaponMounts != null && !ContainsMount(enc, hmount))
+                {
+                    enc.weaponMounts.Add(hmount);
+                    added = true;
+                }
+
+                if (HairpinPod.MountX12 is WeaponMount hmount12
+                    && enc.weaponMounts != null && !ContainsMount(enc, hmount12))
+                {
+                    enc.weaponMounts.Add(hmount12);
+                    added = true;
+                }
+
+                if (!_hairpinPlaced)
+                {
+                    _hairpinPlaced = true;
+                    HairpinPod.Place();
+                }
             }
 
             if (!added || _addedLogged) return;

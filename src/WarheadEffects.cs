@@ -61,7 +61,15 @@ namespace MeridianWorks
 
             foreach (MissileDefinition def in ours)
             {
-                object? donor = FindDonor(fWarhead, OurYield(def, fWarhead), out string donorName);
+                float ourYield = OurYield(def);
+
+                if (ourYield <= 0f)
+                    Plugin.Log.LogWarning(
+                        $"[Meridian] {def.jsonKey}: blastYield reads 0, so the warhead effect donor " +
+                        "cannot be matched on size and is picked on completeness alone. Check that " +
+                        "Missile.blastYield still exists under that name in this game build.");
+
+                object? donor = FindDonor(fWarhead, ourYield, out string donorName);
                 ApplyTo(def, fWarhead, donor, donorName);
             }
         }
@@ -182,7 +190,7 @@ namespace MeridianWorks
 
                 string match = $"{d.jsonKey} {d.unitName}";
 
-                float theirs = Yield(w);
+                float theirs = Yield(m);
                 float closeness = (ourYield > 0f && theirs > 0f)
                     ? Mathf.Min(ourYield, theirs) / Mathf.Max(ourYield, theirs)
                     : 0f;
@@ -194,23 +202,27 @@ namespace MeridianWorks
                 if (score <= bestScore) continue;
                 bestScore = score;
                 best = w;
-                donorName = !string.IsNullOrEmpty(d.unitName) ? d.unitName : d.jsonKey;
+
+                donorName = (!string.IsNullOrEmpty(d.unitName) ? d.unitName : d.jsonKey)
+                          + $" (blastYield {theirs:0.#} against our {ourYield:0.#})";
             }
 
             return best;
         }
 
-        private static float OurYield(MissileDefinition? def, FieldInfo fWarhead)
+        private static float OurYield(MissileDefinition? def)
         {
             if (def == null || def.unitPrefab == null) return 0f;
-            var m = def.unitPrefab.GetComponent<Missile>();
-            return m == null ? 0f : Yield(fWarhead.GetValue(m));
+            return Yield(def.unitPrefab.GetComponent<Missile>());
         }
 
-        private static float Yield(object? warhead)
+        private static readonly FieldInfo? F_blastYield
+            = typeof(Missile).GetField("blastYield", Inst);
+
+        private static float Yield(Missile? missile)
         {
-            if (warhead == null) return 0f;
-            return warhead.GetType().GetField("blastYield", Inst)?.GetValue(warhead) as float? ?? 0f;
+            if (missile == null) return 0f;
+            return F_blastYield?.GetValue(missile) as float? ?? 0f;
         }
     }
 }

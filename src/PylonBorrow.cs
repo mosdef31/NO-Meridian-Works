@@ -17,9 +17,94 @@ namespace MeridianWorks
 
         private static readonly HashSet<string> _logged = new HashSet<string>();
 
+        private const string UnderStubMarker = "MeridianUnderStub";
+
+        private const string ReplaceStubMarker = "MeridianReplaceStub";
+
+        private static void SeatUnderStub(Hardpoint hardpoint, WeaponMount mount, Transform root,
+                                          List<Renderer> structure)
+        {
+
+            if (root.Find(UnderStubMarker) != null) return;
+
+            if (!Extent(root, structure, out _, out float ourTop))
+            {
+                Plugin.Diag(
+                    $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: the authored structure reported no bounds, " +
+                    "so it was left where the game put it.");
+                return;
+            }
+
+            bool haveStub = StubBottom(hardpoint, root, out float stubBottom);
+            float delta = (haveStub ? Mathf.Max(stubBottom, 0f) : 0f) - ourTop;
+
+            if (Mathf.Abs(delta) > 0.0005f)
+            {
+                var children = new List<Transform>();
+                foreach (Transform child in root) children.Add(child);
+                foreach (Transform child in children)
+                    child.localPosition += new Vector3(0f, delta, 0f);
+            }
+
+            new GameObject(UnderStubMarker).transform.SetParent(root, false);
+
+            if (_logged.Add("understub|" + Where(hardpoint) + "|" + mount.jsonKey))
+                Plugin.Diag(
+                    $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: hung under " +
+                    (haveStub
+                        ? $"the aircraft's stub, whose underside is at y={stubBottom:0.000}"
+                        : "the hardpoint's own face at y=0.000, because no stub is drawn here") +
+                    $". The assembly moved {delta:0.000} m.");
+        }
+
+        private static void SeatReplacingStub(Hardpoint hardpoint, WeaponMount mount, Transform root,
+                                              List<Renderer> structure)
+        {
+            if (root.Find(ReplaceStubMarker) != null) return;
+
+            if (!Extent(root, structure, out _, out float ourTop))
+            {
+                Plugin.Diag(
+                    $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: the authored structure reported no bounds, " +
+                    "so it was left where the game put it.");
+                return;
+            }
+
+            bool haveStub = StubExtent(hardpoint, root, out float stubBottom, out float stubTop);
+            float delta = haveStub ? stubTop - ourTop : 0f;
+
+            if (Mathf.Abs(delta) > 0.0005f)
+            {
+                var children = new List<Transform>();
+                foreach (Transform child in root) children.Add(child);
+                foreach (Transform child in children)
+                    child.localPosition += new Vector3(0f, delta, 0f);
+            }
+
+            new GameObject(ReplaceStubMarker).transform.SetParent(root, false);
+
+            if (_logged.Add("replacestub|" + Where(hardpoint) + "|" + mount.jsonKey))
+                Plugin.Diag(
+                    $"[Meridian] DATUM {Where(hardpoint)} {mount.jsonKey}: REPLACES the stub. " +
+                    (haveStub
+                        ? $"Stub spans y={stubBottom:0.000} to y={stubTop:0.000}; "
+                        : "No stub is drawn here, so the hardpoint's own face at y=0.000 is the datum; ") +
+                    $"our structure topped out at y={ourTop:0.000}. The assembly moved {delta:0.000} m.");
+        }
+
         internal static void Apply(Hardpoint hardpoint, WeaponMount mount, GameObject spawned)
         {
+            ApplyCore(hardpoint, mount, spawned);
+
+            MountFitProbe.Report(hardpoint, mount, spawned);
+        }
+
+        private static void ApplyCore(Hardpoint hardpoint, WeaponMount mount, GameObject spawned)
+        {
             if (mount == null || spawned == null) return;
+
+            AuthoredMountStub.Mark(hardpoint, false);
+
             if (!PluginInfo.IsOurMountKey(mount.jsonKey)) return;
 
             if (mount.jsonKey.Contains("internal"))
@@ -42,10 +127,20 @@ namespace MeridianWorks
 
             if (existing.Count > 0 && !borrowedRack)
             {
+
+                bool underStub = PluginInfo.HangsUnderStub(mount.jsonKey);
+                AuthoredMountStub.Mark(hardpoint, !underStub);
+
+                if (underStub) SeatUnderStub(hardpoint, mount, spawned.transform, existing);
+                else SeatReplacingStub(hardpoint, mount, spawned.transform, existing);
+
                 if (_logged.Add(Where(hardpoint) + "|" + mount.jsonKey))
                     Plugin.Diag(
                         $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: the mounted prefab carries its own structure, " +
-                        "so no pylon was borrowed and nothing was reseated.");
+                        "so no pylon was borrowed. " +
+                        (underStub
+                            ? "It hangs UNDER the aircraft's stub, which stays drawn."
+                            : "It REPLACES the aircraft's stub, which was hidden."));
                 return;
             }
 
@@ -85,14 +180,30 @@ namespace MeridianWorks
             string stubNote;
             if (Extent(root, PylonRenderers(container.transform), out _, out float pylonTop))
             {
-                bool haveStub = StubBottom(hardpoint, root, out float stubBottom);
-                float top = haveStub ? stubBottom : 0f;
+                bool haveStub = StubExtent(hardpoint, root, out float stubBottom, out float stubTop);
+                Extent(root, PylonRenderers(container.transform), out float donorBottom, out _);
+
+                float top = haveStub ? Mathf.Max(stubBottom, 0f) : 0f;
 
                 container.transform.localPosition += new Vector3(0f, top - pylonTop, 0f);
 
                 stubNote = haveStub
-                    ? $"hung from the aircraft's stub at y={stubBottom:0.000}"
+                    ? $"hung from the aircraft's stub, which spans y={stubBottom:0.000} to " +
+                      $"y={stubTop:0.000} ({(stubTop - stubBottom):0.000} m tall), at y={top:0.000}" +
+                      (stubBottom < 0f
+                          ? " - its underside is BELOW the hardpoint face, so the face was used instead"
+                          : " by its underside")
                     : "no stub found, so hung from the hardpoint's own face at y=0.000";
+
+                if (_logged.Add("datum|" + Where(hardpoint) + "|" + mount.jsonKey))
+                    Plugin.Diag(
+                        $"[Meridian] DATUM {Where(hardpoint)} {mount.jsonKey}: BORROWS a pylon. " +
+                        (haveStub
+                            ? $"Stub spans y={stubBottom:0.000} to y={stubTop:0.000}; "
+                            : "No stub is drawn here, so the hardpoint's own face at y=0.000 is the datum; ") +
+                        $"the borrowed pylon topped out at y={pylonTop:0.000} and moved " +
+                        $"{(top - pylonTop):0.000} m. Donor pylon height " +
+                        $"{(pylonTop - donorBottom):0.000} m, and THE ROUND HANGS BELOW ALL OF IT.");
             }
             else
             {
@@ -137,9 +248,14 @@ namespace MeridianWorks
                 $"sit at y={seatY:0.000}.");
         }
 
-        private static bool StubBottom(Hardpoint hardpoint, Transform root, out float bottom)
+        private static bool StubBottom(Hardpoint hardpoint, Transform root, out float bottom) =>
+            StubExtent(hardpoint, root, out bottom, out _);
+
+        private static bool StubExtent(Hardpoint hardpoint, Transform root,
+                                       out float bottom, out float top)
         {
             bottom = 0f;
+            top = 0f;
             if (hardpoint == null) return false;
 
             if (hardpoint.Pylon != null)
@@ -147,7 +263,7 @@ namespace MeridianWorks
                 bool drawn = hardpoint.Pylon.enabled &&
                              hardpoint.Pylon.gameObject.activeInHierarchy;
 
-                if (drawn && Extent(root, new List<Renderer> { hardpoint.Pylon }, out bottom, out _))
+                if (drawn && Extent(root, new List<Renderer> { hardpoint.Pylon }, out bottom, out top))
                 {
                     return true;
                 }
@@ -171,7 +287,7 @@ namespace MeridianWorks
                 if (FEntryMount?.GetValue(entry) is WeaponMount) continue;
                 if (FEntryRenderer?.GetValue(entry) is not Renderer r) continue;
 
-                return Extent(root, new List<Renderer> { r }, out bottom, out _);
+                return Extent(root, new List<Renderer> { r }, out bottom, out top);
             }
 
             return false;

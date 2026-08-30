@@ -79,6 +79,8 @@ namespace MeridianWorks
                 WarheadEffects.RunOnce();
                 NameGate.RunOnce();
 
+                EventGate.RunOnce();
+
                 if (Plugin.Diagnostics)
                 {
                     IconProbe.RunOnce();

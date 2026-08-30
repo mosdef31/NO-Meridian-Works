@@ -205,10 +205,57 @@ namespace MeridianWorks
                 SeekerSetup(m));
         }
 
+        private Vector3 _lastVel;
+        private bool _haveLastVel;
+        private int _bounces;
+
+        private void WatchForBounce(Missile m)
+        {
+            Vector3 v = m.rb.velocity;
+
+            if (_haveLastVel && _bounces < 4)
+            {
+                float was = _lastVel.magnitude;
+                float now = v.magnitude;
+
+                bool reversed = was > 1f && now > 0.01f
+                                && Vector3.Dot(_lastVel.normalized, v.normalized) < 0f;
+                bool quartered = was > 10f && now < was * 0.45f;
+
+                if (reversed && quartered)
+                {
+                    _bounces++;
+                    object? warhead = AccessTools.Field(typeof(Missile), "warhead")?.GetValue(m);
+                    object? armed = warhead == null ? null
+                        : AccessTools.Field(warhead.GetType(), "Armed")?.GetValue(warhead);
+                    object? fuse = AccessTools.Field(typeof(Missile), "impactFuse")?.GetValue(m);
+                    object? tang = AccessTools.Field(typeof(Missile), "tangible")?.GetValue(m);
+
+                    Vector3 p = m.transform.position;
+                    string under = Physics.Raycast(p, Vector3.down, out RaycastHit hit, 60f)
+                        ? $"'{hit.collider.name}' {hit.distance:0.0} m below, "
+                          + $"rb={(hit.collider.attachedRigidbody == null ? "none" : (hit.collider.attachedRigidbody.isKinematic ? "kinematic" : "dynamic"))}"
+                        : "nothing within 60 m below";
+
+                    Plugin.Log.LogWarning(
+                        $"[Meridian] BOUNCE {_key} t+{Time.time - _born:0.0}s at alt {p.y:0} m: "
+                        + $"{was:0} -> {now:0} m/s, direction reversed. "
+                        + $"impactFuse={fuse} armed={armed} tangible={tang}. {under}.");
+                }
+            }
+
+            _lastVel = v;
+            _haveLastVel = true;
+        }
+
         private void FixedUpdate()
         {
             Missile? m = _missile;
-            if (m == null || _samples >= MaxSamples) { enabled = false; return; }
+            if (m == null) { enabled = false; return; }
+
+            WatchForBounce(m);
+
+            if (_samples >= MaxSamples) return;
             if (Time.time < _next) return;
             _next = Time.time + SampleInterval;
             _samples++;
@@ -339,6 +386,8 @@ namespace MeridianWorks
                 Plugin.Diag(
                     $"[Meridian] SHOT {def.jsonKey} DETONATED at alt {p.y:0} m, " +
                     $"hitTerrain={hitTerrain} hitArmor={hitArmor}.");
+
+                ImpactFacts.Report(__instance, def.jsonKey, p);
             }
             catch
             {

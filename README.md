@@ -25,9 +25,12 @@ Anticipate more additions as the pack grows.
 
 | Weapon | Guidance | Range | AP | HE | Mass | Cost |
 |---|---|---|---|---|---|---|
-| AGM-84 Warhawk | Optical, datalink | 20 km | 1100 | 330 | 660 kg | $1.1m |
-| AGM-57L Bulldog | Laser | 15 km | 400 | 220 | 520 kg | $550k |
-| AGM-33L Hornet | Laser | 12 km | 250 | 90 | 300 kg | $300k |
+| AGM-84 Warhawk | Optical, datalink | 20 km | 880 | 330 | 660 kg | $1.1m |
+| AGM-57L Bulldog | Laser | 15 km | 382 | 260 | 520 kg | $550k |
+| AGM-33L Hornet | Laser | 12 km | 240 | 130 | 300 kg | $300k |
+| AGM-92 | Optical, datalink | 75 km | 700 | 620 | 1100 kg | $2.6m |
+| ARAD-72 | Radar homing | 70 km | 0 | 90 | 600 kg | $1.4m |
+| AGR-40 Hairpin | Laser | 6 km | 700 | 5 | 20 kg | $50k |
 
 - **AGM-84 Warhawk:** locked on before release and needs nothing from you afterwards. A
   datalink keeps the aimpoint fresh, so you can shoot from further out than you can
@@ -36,16 +39,72 @@ Anticipate more additions as the pack grows.
   warhead, and cheaper and lighter than anything fire and forget in the same role.
 - **AGM-33L Hornet:** the light one, for helicopters and light attack aircraft. A guided
   answer to armour at a price nothing fire and forget reaches.
+- **AGM-92:** a cruise missile. A booster gets it moving and a long, slow sustainer holds
+  it just under the speed of sound for most of the way to a target you may never see.
+  The longest reach in the pack, and the heaviest thing you can hang on a wing.
+- **ARAD-72:** homes on a radar that is transmitting. Fire it at a search site and it
+  finds its own way there.
+- **AGR-40 Hairpin:** a guidance section screwed into an ordinary rocket, four or twelve
+  to a pod. Precision at a price closer to a rocket than a missile. It goes wherever the
+  stock Kingpin pods go.
 
-The two laser rounds need the target lit until impact. That is the trade.
+The laser rounds need the target lit until impact. That is the trade.
+
+### Bombs
+
+| Weapon | Guidance | Range | AP | HE | Mass | Cost |
+|---|---|---|---|---|---|---|
+| GBO-900 | Optical, datalink | 20 km | 700 | 620 | 900 kg | $1.9m |
+| GBP-500 Bodkin | Optical | 17 km | 950 | 210 | 560 kg | $1.3m |
+
+- **GBO-900:** a heavy glide bomb with a camera in the nose. Released high and fast it
+  reaches a long way, and you steer it the whole way down.
+- **GBP-500 Bodkin:** hardened, and built to go through concrete before it goes off. It
+  locks the target before release and needs nothing from you afterwards. The warhead is
+  modest on purpose. What you are buying is what it goes through first.
+
+### Air to air
+
+| Weapon | Guidance | Range | Warhead | Mass | Cost |
+|---|---|---|---|---|---|
+| AAM-41 Gram | Active radar | 80 km | 26 | 225 kg | $2.3m |
+| AAM-63 Falchion | Active radar | 60 km | 22 | 190 kg | $1.6m |
+| IRM-L7 | Heat | 25 km | 40 | 245 kg | $1.9m |
+| SRM-8 Kukri | Heat | 6.5 km | 7 | 55 kg | $850k |
+
+- **AAM-41 Gram:** the long one. Its own radar takes over at the end, so you can turn
+  away once it is on its way.
+- **AAM-63 Falchion:** shorter and cheaper than the Gram, and quicker off the rail.
+- **IRM-L7:** a heat seeker with a long burn, for shots further out than a dogfight.
+- **SRM-8 Kukri:** small, light and made for close in. Carry a lot of them.
 
 ## Carriage
 
 | Weapon | Pylon | Bay |
 |---|---|---|
-| AGM-84 Warhawk | single, twin | four-round, six-round |
+| AGM-84 Warhawk | single, twin | single, twin, four-round |
 | AGM-57L Bulldog | single, twin | single |
-| AGM-33L Hornet | single, twin, triple | single, twin |
+| AGM-33L Hornet | single, twin | single, twin |
+| AGM-92 | single | none |
+| ARAD-72 | single | single, twin, four-round |
+| GBO-900 | single | single, twin |
+| GBP-500 Bodkin | single, twin | single, twin, four-round, six-round |
+| AAM-41 Gram | single, twin | single, twin, four-round, six-round |
+| AAM-63 Falchion | single, twin | single, twin, four-round, six-round |
+| IRM-L7 | single, twin | none |
+| SRM-8 Kukri | single, twin | none |
+| AGR-40 Hairpin | four-round pod, twelve-round pod | none |
+
+Where a fitting appears is decided by what the aircraft already carries there, so a
+station cleared for something of the same size and weight gets the option and one that
+is not does not. The heat seekers go on pylons only. Air to air weapons on the two
+largest airframes are event content, so a server has to allow it.
+
+## A released weapon cannot hit the aircraft that dropped it
+
+Everything in the pack is intangible for a moment after release, a second and a half for
+missiles and two seconds for bombs. It cannot strike you and you cannot strike it. It can
+still hit the ground, so a low release still works.
 
 ## Carrying these raises your lased target limit
 

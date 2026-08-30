@@ -18,8 +18,9 @@ namespace MeridianWorks
 
         private static readonly string[] Allowed =
         {
-            "mass", "finArea", "torque", "supersonicDrag", "maxSpeed",
+            "mass", "finArea", "torque", "supersonicDrag", "maxSpeed", "maxTurnRate",
             "burnTime", "thrust", "impactFuseDelay", "blastYield", "pierceDamage",
+            "uprightPreference",
         };
 
         internal static void ApplyIfPresent(IEnumerable<MissileDefinition> definitions)
@@ -118,9 +119,7 @@ namespace MeridianWorks
         private static Missile? MissileOn(MissileDefinition def)
         {
 
-            FieldInfo? f = AccessTools.Field(typeof(MissileDefinition), "prefab");
-            if (f?.GetValue(def) is GameObject go) return go.GetComponent<Missile>();
-            return null;
+            return def.unitPrefab != null ? def.unitPrefab.GetComponent<Missile>() : null;
         }
 
         private static Dictionary<string, Dictionary<string, float>> Parse(string text)
