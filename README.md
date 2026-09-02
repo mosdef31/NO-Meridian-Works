@@ -30,7 +30,7 @@ Anticipate more additions as the pack grows.
 | AGM-33L Hornet | Laser | 12 km | 240 | 130 | 300 kg | $300k |
 | AGM-92 | Optical, datalink | 75 km | 700 | 620 | 1100 kg | $2.6m |
 | ARAD-72 | Radar homing | 70 km | 0 | 90 | 600 kg | $1.4m |
-| AGR-40 Hairpin | Laser | 6 km | 700 | 5 | 20 kg | $50k |
+| AGR-40 Hairpin | Infrared | 6 km | 60 | 14 | 20 kg | $50k |
 
 - **AGM-84 Warhawk:** locked on before release and needs nothing from you afterwards. A
   datalink keeps the aimpoint fresh, so you can shoot from further out than you can
@@ -44,9 +44,10 @@ Anticipate more additions as the pack grows.
   The longest reach in the pack, and the heaviest thing you can hang on a wing.
 - **ARAD-72:** homes on a radar that is transmitting. Fire it at a search site and it
   finds its own way there.
-- **AGR-40 Hairpin:** a guidance section screwed into an ordinary rocket, four or twelve
-  to a pod. Precision at a price closer to a rocket than a missile. It goes wherever the
-  stock Kingpin pods go.
+- **AGR-40 Hairpin:** an infrared kinetic interceptor, four or twelve to a pod. A heat
+  seeking guidance section screwed into an ordinary rocket, for incoming munitions and
+  light aircraft at close range. It detonates on contact and it is decoyed by flares
+  easily. It goes wherever the stock Kingpin pods go.
 
 The laser rounds need the target lit until impact. That is the trade.
 
