@@ -22,6 +22,9 @@ namespace MeridianWorks
             else _authored.Remove(hardpoint);
         }
 
+        internal static bool Replaces(Hardpoint? hardpoint) =>
+            hardpoint != null && _authored.Contains(hardpoint);
+
         internal static void Apply(Hardpoint hardpoint)
         {
             if (hardpoint == null) return;

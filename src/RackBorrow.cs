@@ -48,8 +48,8 @@ namespace MeridianWorks
             {
                 if (_logged.Add(mount.jsonKey ?? spawned.name))
                     Plugin.Log.LogWarning(
-                        $"[Meridian] {mount.jsonKey}: no stock mount with {stations.Count} stations and " +
-                        "rack geometry was found, so the rounds hang unsupported. Model a rack in Unity.");
+                $"[Meridian] {mount.jsonKey}: no stock mount with {stations.Count} stations and "
+                + "rack geometry was found, so the rounds hang unsupported.");
                 return;
             }
 
@@ -115,9 +115,7 @@ namespace MeridianWorks
 
             if (donor.Stations.Count > 1 &&
                 (donor.Stations[0] - donor.Stations[donor.Stations.Count - 1]).sqrMagnitude < 0.0001f)
-                Plugin.Log.LogWarning(
-                    $"[Meridian] Rack donor '{donor.Key}' reports every station at the same point, so " +
-                    "our rounds will sit on top of each other. Pick another donor.");
+                Plugin.Log.LogWarning($"[Meridian] Rack donor '{donor.Key}' reports every station at the same point.");
 
             if (!_logged.Add(mount.jsonKey ?? spawned.name)) return;
 

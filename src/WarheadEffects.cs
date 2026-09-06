@@ -44,9 +44,7 @@ namespace MeridianWorks
             FieldInfo? fWarhead = typeof(Missile).GetField("warhead", Inst);
             if (fWarhead == null)
             {
-                Plugin.Log.LogError(
-                    "[Meridian] Warhead effects: Missile has no 'warhead' field in this build. " +
-                    "Re-check the decompile. Every round in this pack will throw on impact.");
+                Plugin.Log.LogError("[Meridian] Warhead effects: Missile has no 'warhead' field in this build.");
                 return;
             }
 
@@ -54,8 +52,8 @@ namespace MeridianWorks
             if (ours.Count == 0)
             {
                 Plugin.Log.LogWarning(
-                    "[Meridian] Warhead effects: no missile definition is resolved yet, so there is " +
-                    "nothing to fill. Expected if the bundle failed to load.");
+                "[Meridian] Warhead effects: no missile definition is resolved yet, so there is "
+                + "nothing to fill.");
                 return;
             }
 
@@ -64,10 +62,7 @@ namespace MeridianWorks
                 float ourYield = OurYield(def);
 
                 if (ourYield <= 0f)
-                    Plugin.Log.LogWarning(
-                        $"[Meridian] {def.jsonKey}: blastYield reads 0, so the warhead effect donor " +
-                        "cannot be matched on size and is picked on completeness alone. Check that " +
-                        "Missile.blastYield still exists under that name in this game build.");
+                    Plugin.Log.LogWarning($"[Meridian] {def.jsonKey}: blastYield reads 0.");
 
                 object? donor = FindDonor(fWarhead, ourYield, out string donorName);
                 ApplyTo(def, fWarhead, donor, donorName);
@@ -127,10 +122,9 @@ namespace MeridianWorks
             if (donorWarhead == null)
             {
                 Plugin.Log.LogError(
-                    $"[Meridian] {who}: no stock warhead to borrow from and {missing.Length} field(s) " +
-                    $"are unset ({string.Join(", ", missing)}). terrainEffect, armorEffect and " +
-                    "underwaterEffect are NOT null-checked by Missile+Warhead.Detonate, so this round " +
-                    "will throw on impact and do nothing at all. Assign them in Unity.");
+                    $"[Meridian] {who}: {missing.Length} warhead effect field(s) unset " +
+                    $"({string.Join(", ", missing)}) and no stock warhead to borrow from. " +
+                    "This round will not detonate.");
                 return;
             }
 
@@ -158,9 +152,8 @@ namespace MeridianWorks
 
             if (stillNull.Length > 0)
                 Plugin.Log.LogError(
-                    $"[Meridian] {who}: STILL UNSET after borrowing: {string.Join(", ", stillNull)}. " +
-                    "The game does not null-check these, so the round will throw on impact and do no " +
-                    "damage. Assign them in Unity.");
+                    $"[Meridian] {who}: still unset after borrowing: " +
+                    $"{string.Join(", ", stillNull)}. This round will not detonate.");
         }
 
         private static object? FindDonor(FieldInfo fWarhead, float ourYield, out string donorName)

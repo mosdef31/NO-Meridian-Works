@@ -66,9 +66,8 @@ namespace MeridianWorks
             if (FEvent == null)
             {
                 Plugin.Log.LogWarning(
-                    "[Meridian] The event-content gate is OFF: WeaponMount has no "
-                    + "'isEventContent' field any more. Air-to-air fittings on the "
-                    + "Darkreach and the Chimera stay ungated. Nothing else is affected.");
+                "[Meridian] The event-content gate is OFF: WeaponMount has no "
+                + "'isEventContent' field any more.");
                 return;
             }
 
@@ -112,9 +111,8 @@ namespace MeridianWorks
             if (airframes == 0)
             {
                 Plugin.Log.LogWarning(
-                    "[Meridian] The event-content gate found NO Darkreach and NO Chimera "
-                    + "in this session, so nothing was gated. If either is installed, the "
-                    + "name tokens this matches on have moved.");
+                "[Meridian] The event-content gate found NO Darkreach and NO Chimera "
+                + "in this session, so nothing was gated.");
                 return;
             }
 

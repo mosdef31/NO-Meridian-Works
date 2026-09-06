@@ -10,7 +10,7 @@ namespace MeridianWorks
         internal const string GUID = "com.meridianworks";
         internal const string Name = "Meridian Works";
 
-        internal const string Version = "1.1.0.1";
+        internal const string Version = "1.0.0.0";
 
         internal const string BlueprinterGUID = "com.nikkorap.blueprinter";
 
@@ -71,7 +71,8 @@ namespace MeridianWorks
 
             new Weapon("AAM-41 Gram",     "MeridianAAM41",  "AAM-41 Gram",     new[] {
                                  "single", "internal", "double_compact", "internalx2",
-                                 "internalx4", "internalx6", "triple" }, 0.126f),
+                                 "internalx3", "internalx4", "internalx6", "triple",
+                                 "internalx8" }, 0.126f),
             new Weapon("SRM-8 Kukri",     "MeridianSRM8",   "SRM-8 Kukri",     new[] {
                                  "single", "internal", "double_compact", "internalx2",
                                  "internalx4", "internalx6" }, 0.095f),
@@ -79,15 +80,16 @@ namespace MeridianWorks
                                  "single", "internal", "x2", "internalx2",
                                  "internalx4", "internalx6" }, 0.133f),
             new Weapon("AAM-63 Falchion", "MeridianAAM63",  "AAM-63 Falchion", new[] {
-                                 "single", "internal", "double_compact", "internalx2",
-                                 "internalx4", "internalx6" }, 0.106f),
+                                 "single", "internal", "double_compact", "triple",
+                                 "internalx2", "internalx3", "internalx4", "internalx6",
+                                 "internalx8" }, 0.106f),
             new Weapon("ARAD-72",         "MeridianARAD72", "ARAD-72",         new[] { "single", "internal", "internalx2", "internalx4" }, 0.320f),
             new Weapon("GBO-900",         "MeridianGBO900", "GBO-900",         new[] { "single", "internal", "internalx2" }, 0.232f),
 
-            new Weapon("AGM-92",          "MeridianAGM92",  "AGM-92",          new[] { "single" }, 0.271f),
+            new Weapon("AGM-92",          "MeridianAGM92",  "AGM-92",          new[] { "single", "internal" }, 0.271f),
             new Weapon("GBP-500 Bodkin",  "MeridianGBP500", "GBP-500 Bodkin",  new[] {
                                  "single", "internal", "x2", "internalx2",
-                                 "internalx4", "internalx6" }, 0.189f),
+                                 "internalx4", "internalx6", "internalx6_flat", "internalx18" }, 0.189f),
         };
 
         internal static readonly string[] ArchivedMountKeys =
@@ -96,15 +98,21 @@ namespace MeridianWorks
             "MeridianAGM33L_triple",
             "MeridianAGM57L_triple",
             "MeridianAAM41_triple",
-            "MeridianSRM8_internal",
-            "MeridianSRM8_internalx2",
             "MeridianSRM8_internalx4",
             "MeridianSRM8_internalx6",
             "MeridianIRML7_internal",
             "MeridianIRML7_internalx2",
             "MeridianIRML7_internalx4",
-            "MeridianIRML7_internalx6",
             "MeridianAGM84_internalx6",
+            "MeridianAAM41_internalx4",
+            "MeridianAAM41_internalx6",
+            "MeridianAAM63_internalx4",
+            "MeridianAAM63_internalx6",
+            "MeridianAGM84_internal",
+            "MeridianARAD72_internal",
+            "MeridianGBO900_internalx2",
+            "MeridianGBP500_internalx4",
+            "MeridianGBP500_x2",
         };
 
         internal static readonly string[] UnderStubMountKeys =
@@ -113,7 +121,9 @@ namespace MeridianWorks
         };
 
         internal static bool HangsUnderStub(string? key) =>
-            !string.IsNullOrEmpty(key) && Array.IndexOf(UnderStubMountKeys, key) >= 0;
+            !string.IsNullOrEmpty(key)
+            && (Array.IndexOf(UnderStubMountKeys, key) >= 0
+                || key!.EndsWith("_single", StringComparison.Ordinal));
 
         internal static bool IsArchivedMountKey(string? key) =>
             !string.IsNullOrEmpty(key) && Array.IndexOf(ArchivedMountKeys, key) >= 0;

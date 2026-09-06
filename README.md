@@ -121,22 +121,28 @@ number neither of them intended.
 1. Install [BepInEx](https://github.com/BepInEx/BepInEx) for Nuclear Option.
 2. Install Blueprinter, which loads the weapon assets. Meridian Works will not load
    without it.
-3. Drop `MeridianWorks/` into `BepInEx/plugins/`.
+3. **Delete any existing `BepInEx/plugins/MeridianWorks/` folder.**
+4. Drop `MeridianWorks/` into `BepInEx/plugins/`.
 
 The asset bundle is embedded in the DLL, so there is one file and nothing to keep in step.
+Step 3 matters for the same reason: Blueprinter keeps the higher version number when it
+finds two bundles, and a loose bundle left over from an earlier test build carries a
+higher number than this release does.
 
 ## Settings
 
-One setting, in `BepInEx/config/com.meridianworks.cfg`, and it is off unless you turn it
-on.
+Four settings, in `BepInEx/config/com.meridianworks.cfg`.
 
-| Setting | Default | What it does |
-|---|---|---|
-| `Diagnostics` | `false` | Writes detailed lines to the BepInEx log describing how each Meridian store is assembled and mounted. |
+| Setting | Section | Default | What it does |
+|---|---|---|---|
+| `Diagnostics` | `Meridian Works` | `false` | Writes detailed lines to the BepInEx log describing how each Meridian store is assembled and mounted. |
+| `Off-boresight ring` | `HUD` | `true` | Draws a crossed circle over the target while a Meridian heat seeker can still be launched at it, on wide shots where the usual cue is in the middle of the screen. |
+| `Livery on mounts` | `Appearance` | `true` | Paints Meridian pylons and racks in the aircraft's livery colour, the way stock drop tanks and rocket pods are painted. The weapons themselves keep their own finish. |
+| `Close mounts onto the wing` | `Appearance` | `true` | Raises a mount until it touches the aircraft skin above it, on hardpoints where the game draws no pylon to hang from. Only ever by the gap it measures, and never more than 10 cm. |
 
-Turn it on if you are reporting a problem with how a weapon looks or where it sits, then
-send the log with your report. Leave it off otherwise; it costs you nothing either way,
-and problems are still logged without it.
+Turn `Diagnostics` on if you are reporting a problem with how a weapon looks or where it
+sits, then send the log with your report. Leave it off otherwise; it costs you nothing
+either way, and problems are still logged without it.
 
 ## AI use
 

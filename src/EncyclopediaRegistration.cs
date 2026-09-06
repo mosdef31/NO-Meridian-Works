@@ -35,14 +35,26 @@ namespace MeridianWorks
         private static readonly List<WeaponMount> _mounts = new List<WeaponMount>();
         private static readonly List<MissileDefinition> _defs = new List<MissileDefinition>();
         private static AssetBundle? _ourBundle;
-        private static bool _resolveAttempted;
+
+        private static int _resolveAttempts;
         private static bool _addedLogged;
 
         internal static IList<WeaponMount> ResolvedMounts => _mounts;
 
         internal static IList<MissileDefinition> ResolvedMissiles => _defs;
 
-        private static bool _hairpinPlaced;
+        private static readonly List<WeaponMount> _extraMounts = new List<WeaponMount>();
+        private static readonly List<MissileDefinition> _extraDefs = new List<MissileDefinition>();
+
+        internal static IList<WeaponMount> ExtraMounts => _extraMounts;
+
+        internal static IList<MissileDefinition> ExtraMissiles => _extraDefs;
+
+        internal static IEnumerable<WeaponMount> AllOurMounts()
+        {
+            foreach (WeaponMount m in _mounts) yield return m;
+            foreach (WeaponMount m in _extraMounts) yield return m;
+        }
 
         internal static void EnsureInLists(Encyclopedia enc)
         {
@@ -75,32 +87,37 @@ namespace MeridianWorks
 
             if (HairpinPod.Build(enc))
             {
-                if (HairpinPod.Definition is MissileDefinition hdef
-                    && enc.missiles != null && !ContainsMissile(enc, hdef))
+                if (HairpinPod.Definition is MissileDefinition hdef)
                 {
-                    enc.missiles.Add(hdef);
-                    added = true;
+                    if (!_extraDefs.Contains(hdef)) _extraDefs.Add(hdef);
+                    if (enc.missiles != null && !ContainsMissile(enc, hdef))
+                    {
+                        enc.missiles.Add(hdef);
+                        added = true;
+                    }
                 }
 
-                if (HairpinPod.Mount is WeaponMount hmount
-                    && enc.weaponMounts != null && !ContainsMount(enc, hmount))
+                if (HairpinPod.Mount is WeaponMount hmount)
                 {
-                    enc.weaponMounts.Add(hmount);
-                    added = true;
+                    if (!_extraMounts.Contains(hmount)) _extraMounts.Add(hmount);
+                    if (enc.weaponMounts != null && !ContainsMount(enc, hmount))
+                    {
+                        enc.weaponMounts.Add(hmount);
+                        added = true;
+                    }
                 }
 
-                if (HairpinPod.MountX12 is WeaponMount hmount12
-                    && enc.weaponMounts != null && !ContainsMount(enc, hmount12))
+                if (HairpinPod.MountX12 is WeaponMount hmount12)
                 {
-                    enc.weaponMounts.Add(hmount12);
-                    added = true;
+                    if (!_extraMounts.Contains(hmount12)) _extraMounts.Add(hmount12);
+                    if (enc.weaponMounts != null && !ContainsMount(enc, hmount12))
+                    {
+                        enc.weaponMounts.Add(hmount12);
+                        added = true;
+                    }
                 }
 
-                if (!_hairpinPlaced)
-                {
-                    _hairpinPlaced = true;
-                    HairpinPod.Place();
-                }
+                HairpinPod.Place();
             }
 
             if (!added || _addedLogged) return;
@@ -111,6 +128,10 @@ namespace MeridianWorks
                 string.Join(", ", _mounts.Where(m => m != null).Select(m => $"'{m.jsonKey}'").ToArray()) +
                 $"; {_defs.Count} missile(s): " +
                 string.Join(", ", _defs.Where(d => d != null).Select(d => $"'{d.jsonKey}'").ToArray()) +
+                (_extraMounts.Count == 0 ? "" :
+                    $"; and {_extraMounts.Count} mount(s) built at runtime from stock parts rather " +
+                    "than loaded from the bundle: " +
+                    string.Join(", ", _extraMounts.Where(m => m != null).Select(m => $"'{m.jsonKey}'").ToArray())) +
                 ". AfterLoad's rebuild will index them.");
         }
 
@@ -147,7 +168,7 @@ namespace MeridianWorks
             }
 
             bool ok = _mounts.Count > 0;
-            foreach (WeaponMount mount in _mounts)
+            foreach (WeaponMount mount in AllOurMounts())
             {
                 if (mount == null || string.IsNullOrEmpty(mount.jsonKey)) continue;
                 bool present = Encyclopedia.WeaponLookup != null &&
@@ -158,7 +179,8 @@ namespace MeridianWorks
             }
 
             if (ok)
-                Plugin.Diag($"[Meridian] All {_mounts.Count} mount(s) are in WeaponLookup.");
+                Plugin.Diag($"[Meridian] All {_mounts.Count + _extraMounts.Count} mount(s) are in "
+                            + "WeaponLookup.");
             return ok;
         }
 
@@ -173,8 +195,8 @@ namespace MeridianWorks
         private static bool TryResolveAssets()
         {
             if (_mounts.Count > 0) return true;
-            if (_resolveAttempted && _mounts.Count == 0) return false;
-            _resolveAttempted = true;
+
+            _resolveAttempts++;
 
             _ourBundle = FindOurLoadedBundle();
             if (_ourBundle != null)
@@ -185,30 +207,12 @@ namespace MeridianWorks
 
             if (_mounts.Count == 0)
             {
-                AssetBundle? bundle = TryLoadBundleFromDisk();
-                if (bundle != null)
-                {
-                    _ourBundle = bundle;
-                    _mounts.AddRange(LoadOurs<WeaponMount>(bundle, PluginInfo.MountAssetFragment));
-                    if (_defs.Count == 0)
-                        _defs.AddRange(LoadOurs<MissileDefinition>(bundle, PluginInfo.MissileDefAssetFragment));
-                    if (_mounts.Count > 0)
-                        Plugin.Log.LogWarning(
-                            $"[Meridian] Loaded a loose {PluginInfo.BundleName} from disk because the " +
-                            "embedded bundle was not resident. NetworkIdentity PrefabHashes may be " +
-                            "unassigned, which Blueprinter normally does, so multiplayer spawning could " +
-                            "fail. Confirm Blueprinter is installed - and delete that loose file, " +
-                            "because Blueprinter scans loose bundles BEFORE embedded ones and keeps " +
-                            "whichever has the higher modVersion, so a stale copy silently wins.");
-                }
-            }
 
-            if (_mounts.Count == 0)
-            {
+                if (_resolveAttempts < 3) return false;
+
                 Plugin.Log.LogError(
-                    "[Meridian] Could not resolve a single WeaponMount from any loaded bundle or from " +
-                    $"disk. Expected assets whose path contains '{PluginInfo.MountAssetFragment}'. " +
-                    "Nothing in this pack can register.");
+                "[Meridian] Could not resolve a single WeaponMount from any loaded bundle or from "
+                + $"disk.");
                 DumpLoadedBundleNames();
                 return false;
             }
@@ -238,9 +242,8 @@ namespace MeridianWorks
                 if (prefab != null && prefab.GetComponent<Unit>() == null)
                 {
                     Plugin.Log.LogError(
-                        $"[Meridian] '{def.jsonKey}': the prefab '{prefab.name}' has no Unit component " +
-                        "(its Missile is missing), so CacheMass would throw on it exactly as a null " +
-                        "prefab does. Not using it.");
+                $"[Meridian] '{def.jsonKey}': the prefab '{prefab.name}' has no Unit component "
+                + "(its Missile is missing).");
                     prefab = null;
                 }
 
@@ -248,20 +251,15 @@ namespace MeridianWorks
                 {
                     def.unitPrefab = prefab;
                     Plugin.Log.LogWarning(
-                        $"[Meridian] '{def.jsonKey}' shipped with a NULL unitPrefab and was repaired at " +
-                        $"load from the bundle's '{prefab.name}'. Encyclopedia.AfterLoad dereferences " +
-                        "that field with no null check, so without this repair the game draws its main " +
-                        "menu and never becomes clickable. The generator writes the field now, so a " +
-                        "rebuilt bundle will not need this.");
+                $"[Meridian] '{def.jsonKey}' shipped with a NULL unitPrefab and was repaired at "
+                + $"load from the bundle's '{prefab.name}'.");
                     continue;
                 }
 
                 _defs.RemoveAt(i);
                 Plugin.Log.LogError(
-                    $"[Meridian] '{def.jsonKey}' has a NULL unitPrefab and no prefab for it could be " +
-                    "found in the bundle, so it is NOT being registered and that weapon will not exist " +
-                    "this run. Registering it anyway would throw inside Encyclopedia.AfterLoad and stop " +
-                    "the game reaching its main menu at all, which is the worse of the two.");
+                $"[Meridian] '{def.jsonKey}' has a NULL unitPrefab and no prefab for it could be "
+                + "found in the bundle.");
             }
         }
 
@@ -277,11 +275,8 @@ namespace MeridianWorks
 
                 missile.definition = def;
                 Plugin.Log.LogWarning(
-                    $"[Meridian] '{def.jsonKey}': the flying prefab's Missile.definition was NULL and " +
-                    "was pointed back at its definition. WeaponMount.Initialize reads " +
-                    "info.weaponPrefab.GetComponent<Missile>().definition.mass with nothing checked, so " +
-                    "without this the game draws its main menu and never becomes clickable. Fix it in " +
-                    "Unity and re-export.");
+                $"[Meridian] '{def.jsonKey}': the flying prefab's Missile.definition was NULL and "
+                + "was pointed back at its definition.");
             }
         }
 
@@ -290,10 +285,7 @@ namespace MeridianWorks
             FieldInfo? fInfo = AccessTools.Field(typeof(Missile), "info");
             if (fInfo == null)
             {
-                Plugin.Log.LogError(
-                    "[Meridian] Missile.info could not be reached by reflection, so the flying prefabs " +
-                    "keep a null WeaponInfo. Any laser-guided round will throw inside LaserSeeker." +
-                    "Initialize and fly blind. Check whether the field has been renamed in this build.");
+                Plugin.Log.LogError("[Meridian] Missile.info could not be reached by reflection.");
                 return;
             }
 
@@ -311,10 +303,8 @@ namespace MeridianWorks
 
                 fInfo.SetValue(missile, info);
                 Plugin.Log.LogWarning(
-                    $"[Meridian] '{info.weaponName}': the flying prefab's Missile.info was NULL and was " +
-                    "pointed back at its WeaponInfo. LaserSeeker.Initialize dereferences it with no null " +
-                    "check, and the throw aborts Missile.LocalStart, which leaves the round with no " +
-                    "target and undeployed fins. Fix it in Unity and re-export.");
+                $"[Meridian] '{info.weaponName}': the flying prefab's Missile.info was NULL and was "
+                + "pointed back at its WeaponInfo.");
             }
         }
 
@@ -328,10 +318,8 @@ namespace MeridianWorks
 
                 _mounts.RemoveAt(i);
                 Plugin.Log.LogError(
-                    $"[Meridian] Mount '{(mount != null ? mount.jsonKey : "(null)")}' is NOT being " +
-                    $"registered: {why}. WeaponMount.Initialize would throw on it inside " +
-                    "Encyclopedia.AfterLoad, and that stops the game reaching a clickable main menu. " +
-                    "Fix it in Unity and re-export.");
+                    $"[Meridian] Mount '{(mount != null ? mount.jsonKey : "(null)")}' was not " +
+                    $"registered: {why}.");
             }
         }
 
@@ -360,9 +348,8 @@ namespace MeridianWorks
 
                 def.visibleRange = PluginInfo.FallbackVisibleRangeMetres;
                 Plugin.Log.LogWarning(
-                    $"[Meridian] '{def.jsonKey}' shipped with visibleRange 0, so the round would never " +
-                    $"be drawn as a contact. Set to {PluginInfo.FallbackVisibleRangeMetres:0} m, which " +
-                    "is what the stock guided AGMs carry. Fix it in Unity and re-export.");
+                $"[Meridian] '{def.jsonKey}' shipped with visibleRange 0, so the round would never "
+                + $"be drawn as a contact.");
             }
         }
 
@@ -396,35 +383,26 @@ namespace MeridianWorks
                 {
                     if (haveMounts.Contains(key)) continue;
                     Plugin.Log.LogError(
-                        $"[Meridian] {w.Designation}: the bundle has no WeaponMount with jsonKey " +
-                        $"'{key}'. That rack will not appear in any loadout, and nothing else will " +
-                        "say so. Tick the WeaponMount assets into the bundle FIRST - nothing " +
-                        "references them, so nothing drags them in as a dependency.");
+                $"[Meridian] {w.Designation}: the bundle has no WeaponMount with jsonKey "
+                + $"'{key}'.");
                 }
 
                 if (!haveDefs.Contains(w.MissileKey))
                     Plugin.Log.LogError(
-                        $"[Meridian] {w.Designation}: the bundle has no MissileDefinition with jsonKey " +
-                        $"'{w.MissileKey}'. The round has no Encyclopedia entry.");
+                $"[Meridian] {w.Designation}: the bundle has no MissileDefinition with jsonKey "
+                + $"'{w.MissileKey}'.");
             }
 
             foreach (string key in haveMounts.Where(k => !PluginInfo.IsOurMountKey(k))
                                              .Concat(haveDefs.Where(k => !PluginInfo.IsOurMissileKey(k))))
-                Plugin.Log.LogError(
-                    $"[Meridian] Resolved an asset keyed '{key}' that is NOT ours. The bundle and key " +
-                    "filters in LoadOurs are not doing their job; registering another mod's asset can " +
-                    "duplicate a key and throw inside Encyclopedia.AfterLoad, which takes every weapon " +
-                    "in the game down with it.");
+                Plugin.Log.LogError($"[Meridian] Resolved an asset keyed '{key}' that is NOT ours.");
 
             var seen = new HashSet<string>();
             foreach (WeaponMount mount in _mounts)
             {
                 string key = mount.jsonKey ?? "";
                 if (!string.IsNullOrEmpty(key) && !seen.Add(key))
-                    Plugin.Log.LogError(
-                        $"[Meridian] Two WeaponMounts in the bundle share the jsonKey '{key}'. " +
-                        "Encyclopedia.AfterLoad adds them to a dictionary by key and will throw on the " +
-                        "second, taking every weapon in the game with it. Fix one in Unity.");
+                    Plugin.Log.LogError($"[Meridian] Two WeaponMounts in the bundle share the jsonKey '{key}'.");
             }
 
             Plugin.Log.LogInfo(
@@ -439,9 +417,8 @@ namespace MeridianWorks
             if (trimmed == key) return;
 
             Plugin.Log.LogWarning(
-                $"[Meridian] Asset '{asset.name}' has a jsonKey with stray whitespace: '{key}' -> " +
-                $"'{trimmed}'. Trimming it so Encyclopedia lookups match. Fix it at the source in " +
-                "Unity and re-export the bundle.");
+                $"[Meridian] Asset '{asset.name}' has a jsonKey with stray whitespace: '{key}' -> "
+                + $"'{trimmed}'.");
             key = trimmed;
         }
 
@@ -505,9 +482,7 @@ namespace MeridianWorks
                 }
 
                 Plugin.Log.LogWarning(
-                    $"[Meridian] Skipped '{name}' (key '{trimmed}') from bundle '{bundle.name}': it is " +
-                    "not in the key table in PluginInfo.cs, so it is not ours to register. If this IS " +
-                    "one of ours the generator's naming moved and the table needs updating.");
+                $"[Meridian] Skipped '{name}' from bundle '{bundle.name}': not a Meridian asset.");
             }
 
             return found;

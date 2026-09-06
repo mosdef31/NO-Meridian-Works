@@ -21,6 +21,8 @@ namespace MeridianWorks
             "mass", "finArea", "torque", "supersonicDrag", "maxSpeed", "maxTurnRate",
             "burnTime", "thrust", "impactFuseDelay", "blastYield", "pierceDamage",
             "uprightPreference",
+
+            "guidanceDelay", "loftAmount",
         };
 
         internal static void ApplyIfPresent(IEnumerable<MissileDefinition> definitions)
@@ -46,15 +48,11 @@ namespace MeridianWorks
             }
             catch (Exception ex)
             {
-                Plugin.Log.LogError(
-                    $"[Meridian] {FileName} could not be read, so NOTHING was overridden and the " +
-                    $"bundle's own numbers stand: {ex.Message}");
+                Plugin.Log.LogError($"[Meridian] {FileName} could not be read: {ex.Message}");
                 return;
             }
 
-            Plugin.Log.LogWarning(
-                $"[Meridian] TUNING FILE IN USE: {path}. The flight numbers below are NOT the ones " +
-                "the bundle shipped with. This file must not be present in a release.");
+            Plugin.Log.LogWarning($"[Meridian] TUNING FILE IN USE: {path}.");
 
             foreach (MissileDefinition def in definitions)
             {
@@ -101,8 +99,8 @@ namespace MeridianWorks
             }
 
             Plugin.Log.LogWarning(
-                $"[Meridian] {key}: no float or int field called '{field}' on the Missile or its " +
-                "motors, so it was ignored. Check the name against the field dump.");
+                $"[Meridian] {key}: no float or int field called '{field}' on the Missile, its "
+                + "motors or its seeker, so it was ignored.");
         }
 
         private static IEnumerable<object> Targets(Missile missile)
@@ -114,6 +112,9 @@ namespace MeridianWorks
                 foreach (object m in motors)
                     if (m != null) yield return m;
             }
+
+            MissileSeeker? seeker = missile.GetComponent<MissileSeeker>();
+            if (seeker != null) yield return seeker;
         }
 
         private static Missile? MissileOn(MissileDefinition def)

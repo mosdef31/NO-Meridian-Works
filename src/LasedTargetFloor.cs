@@ -25,10 +25,7 @@ namespace MeridianWorks
             if (FMaxTargets == null)
             {
                 if (_logged.Add("nofield"))
-                    Plugin.Log.LogWarning(
-                        "[Meridian] LaserDesignator.maxTargets was not found, so the lased-target " +
-                        "floor could not be applied. The game's field may have been renamed - " +
-                        "check API-WATCHLIST.md.");
+                    Plugin.Log.LogWarning("[Meridian] LaserDesignator.maxTargets was not found.");
                 return;
             }
 

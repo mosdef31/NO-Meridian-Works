@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using HarmonyLib;
+using Shared.Ballistics;
 using UnityEngine;
 
 namespace MeridianWorks
@@ -13,6 +14,10 @@ namespace MeridianWorks
         private const float Step = 0.1f;
 
         private const float EjectSpeed = 3f;
+
+        private const float MinAimAhead = 5f;
+
+        private const float MinAimBelow = 5f;
 
         private static readonly FieldInfo? FKnownPos =
             AccessTools.Field(typeof(OpticalSeeker), "knownPos");
@@ -40,35 +45,61 @@ namespace MeridianWorks
             return FMotors?.GetValue(missile) is Array m && m.Length == 0;
         }
 
-        internal static bool BallisticImpact(Vector3 from, Vector3 velocity, out Vector3 hit)
+        internal static bool BallisticImpact(Missile round, Vector3 from,
+                                             Vector3 velocity, out Vector3 hit)
         {
             hit = Vector3.zero;
+            if (round == null) return false;
 
-            Vector3 p = from;
-            Vector3 v = velocity;
-            int mask = ~PhysicsLayers.ExclusionZonesMask.value;
-
-            for (float t = 0f; t < MaxFallSeconds; t += Step)
+            TrajectorySolver.RoundSpec? spec = SpecFor(round);
+            if (spec == null)
             {
-                v += Physics.gravity * Step;
-                Vector3 next = p + v * Step;
 
-                if (Physics.Linecast(p, next, out RaycastHit info, mask))
-                {
-                    hit = info.point;
-                    return true;
-                }
+                return false;
+            }
 
-                if (next.y < Datum.LocalSeaY)
-                {
-                    hit = new Vector3(next.x, Datum.LocalSeaY, next.z);
-                    return true;
-                }
+            TrajectorySolver.Result r = TerrainImpact.Solve(
+                spec, from, velocity, stepScale: 1f,
+                sampleGround: SampleGround,
+                sampleTerrain: true);
 
-                p = next;
+            if (!r.Hit) return false;
+            hit = r.ImpactPoint;
+            return true;
+        }
+
+        private static bool SampleGround(Vector3 at, out float groundY)
+        {
+            groundY = Datum.LocalSeaY;
+
+            int mask = (int)PhysicsLayers.StaticsMask | (int)PhysicsLayers.ShipsMask;
+            if (Physics.Raycast(new Vector3(at.x, at.y + 2000f, at.z), Vector3.down,
+                                out RaycastHit info, 20000f, mask))
+            {
+                groundY = info.point.y;
+                return true;
             }
 
             return false;
+        }
+
+        private static readonly System.Collections.Generic.Dictionary<string, TrajectorySolver.RoundSpec>
+            _specs = new System.Collections.Generic.Dictionary<string, TrajectorySolver.RoundSpec>();
+
+        private static TrajectorySolver.RoundSpec? SpecFor(Missile round)
+        {
+            string key = round.definition != null ? round.definition.jsonKey : round.name;
+            if (_specs.TryGetValue(key, out TrajectorySolver.RoundSpec cached)) return cached;
+
+            TrajectorySolver.RoundSpec? made =
+                RoundSpecFactory.FromMissile(round, Plugin.Log);
+            if (made == null) return null;
+
+            _specs[key] = made;
+            Plugin.Log.LogInfo(
+                $"[Meridian] Release solution for '{key}' now comes from the shared "
+                + "trajectory solver.");
+            return made;
         }
 
         internal static void Eject(Missile missile)
@@ -85,8 +116,16 @@ namespace MeridianWorks
             if (FTargetUnit?.GetValue(seeker) is Unit u && u != null)
                 return "has a target; left alone";
 
-            if (!BallisticImpact(missile.transform.position, missile.rb.velocity, out Vector3 impact))
+            if (!BallisticImpact(missile, missile.transform.position, missile.rb.velocity,
+                                 out Vector3 impact))
                 return "no ground found within " + MaxFallSeconds + " s; left alone";
+
+            float ahead = Vector3.ProjectOnPlane(impact - missile.transform.position, Vector3.up).magnitude;
+            float below = missile.transform.position.y - impact.y;
+            if (ahead < MinAimAhead && below < MinAimBelow)
+                return $"the solved impact point is only {ahead:0.#} m ahead and {below:0.#} m "
+                     + "below, which is the round's own position rather than a solution; "
+                     + "left alone";
 
             FKnownPos.SetValue(seeker, impact.ToGlobalPosition());
             FKnownVel.SetValue(seeker, Vector3.zero);

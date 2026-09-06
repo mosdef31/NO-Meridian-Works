@@ -36,9 +36,7 @@ namespace MeridianWorks
 
                 if (mount.info == null)
                 {
-                    Plugin.Log.LogError(
-                        $"[Meridian] Mount '{mount.jsonKey}' has no WeaponInfo. It cannot be loaded " +
-                        "onto an aircraft and the loadout entry has nothing to name itself from.");
+                    Plugin.Log.LogError($"[Meridian] Mount '{mount.jsonKey}' has no WeaponInfo.");
                     faults++;
                     continue;
                 }
@@ -57,11 +55,8 @@ namespace MeridianWorks
                 if (mount.info.weaponName != owner.WeaponName)
                 {
                     Plugin.Log.LogError(
-                        $"[Meridian] {owner.Designation}: WeaponInfo.weaponName is " +
-                        $"'{mount.info.weaponName}' but the key table expects '{owner.WeaponName}'. " +
-                        "One of the two moved without the other. The bundle is authoritative for what " +
-                        "a player sees; PluginInfo.cs is authoritative for what the code gates on, and " +
-                        "while they disagree the loadout and the code are describing different weapons.");
+                $"[Meridian] {owner.Designation}: WeaponInfo.weaponName is "
+                + $"'{mount.info.weaponName}' but the key table expects '{owner.WeaponName}'.");
                     faults++;
                 }
             }
@@ -75,8 +70,8 @@ namespace MeridianWorks
                 if (def.unitPrefab == null)
                 {
                     Plugin.Log.LogError(
-                        $"[Meridian] MissileDefinition '{def.jsonKey}' has no unitPrefab, so the round " +
-                        "has nothing to spawn. Re-check what was ticked into the bundle.");
+                $"[Meridian] MissileDefinition '{def.jsonKey}' has no unitPrefab, so the round "
+                + "has nothing to spawn.");
                     faults++;
                 }
             }
@@ -87,9 +82,7 @@ namespace MeridianWorks
                     $"mount(s) and {EncyclopediaRegistration.ResolvedMissiles.Count} missile " +
                     "definition(s), no stray whitespace and no name mismatch.");
             else
-                Plugin.Log.LogError(
-                    $"[Meridian] Name gate found {faults} fault(s). Each one is silent in game - fix " +
-                    "them in Unity and re-export before flying anything.");
+                Plugin.Log.LogError($"[Meridian] Name gate found {faults} fault(s).");
         }
 
         private static int ReportWhitespace(string what, string assetName, string? value)
@@ -103,9 +96,7 @@ namespace MeridianWorks
             string actual = value!;
             if (actual == actual.Trim()) return 0;
 
-            Plugin.Log.LogError(
-                $"[Meridian] Asset '{assetName}': {what} is '{actual}' - it has stray whitespace. " +
-                "Fix it at the source in Unity and re-export.");
+            Plugin.Log.LogError($"[Meridian] Asset '{assetName}': {what} is '{actual}' - it has stray whitespace.");
             return 1;
         }
     }

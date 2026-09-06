@@ -30,10 +30,7 @@ namespace MeridianWorks
                     if (!_warned)
                     {
                         _warned = true;
-                        Plugin.Log.LogWarning(
-                            "[Meridian] The no-lock endurance floor is OFF because a field it "
-                            + $"reads no longer exists on MissileSeeker: missile={(FMissile != null)}, "
-                            + $"targetUnit={(FTargetUnit != null)}. Nothing else is affected.");
+                        Plugin.Log.LogWarning("[Meridian] The no-lock endurance floor is OFF.");
                     }
                     return true;
                 }

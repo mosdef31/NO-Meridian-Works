@@ -222,10 +222,7 @@ namespace MeridianWorks
                     if (!_warnedMissingField)
                     {
                         _warnedMissingField = true;
-                        Plugin.Log.LogWarning(
-                            "[Meridian] Off-boresight cue is OFF because a field it reads no "
-                            + $"longer exists on HUDMissileState: allRequirementsMet={(FMet != null)}, "
-                            + $"weaponStation={(FStation != null)}. Nothing else is affected.");
+                        Plugin.Log.LogWarning("[Meridian] Off-boresight cue is OFF.");
                     }
                     return;
                 }

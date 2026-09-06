@@ -37,19 +37,14 @@ namespace MeridianWorks
             List<Transform> nozzles = FindNozzles(ours);
             if (nozzles.Count == 0)
             {
-                Plugin.Log.LogWarning(
-                    $"[Meridian] {Key(ours)}: no Exhaust transform on the prefab, so the plume has " +
-                    "nowhere to attach and none was borrowed. The generator writes one empty per " +
-                    "nozzle - re-run Meridian Works > Build weapons and re-export.");
+                Plugin.Log.LogWarning($"[Meridian] {Key(ours)}: no Exhaust transform on the prefab.");
                 return;
             }
 
             Donor? pick = ChooseDonor(Key(ours));
             if (pick == null)
             {
-                Plugin.Log.LogWarning(
-                    "[Meridian] No stock missile with an effectsTransform was found, so no exhaust or " +
-                    "trail could be borrowed. Every round in this pack will fly silent and invisible.");
+                Plugin.Log.LogWarning("[Meridian] No stock missile with an effectsTransform was found.");
                 return;
             }
 
@@ -87,8 +82,8 @@ namespace MeridianWorks
                 if (stagePick == null)
                 {
                     Plugin.Log.LogWarning(
-                        $"[Meridian] {ourKey}: no stock missile carries a stage {stage} with " +
-                        "effects, so that stage burns invisibly. The round still flies.");
+                $"[Meridian] {ourKey}: no stock missile carries a stage {stage} with "
+                + "effects, so that stage burns invisibly.");
                     continue;
                 }
 
@@ -282,8 +277,8 @@ namespace MeridianWorks
             }
         }
 
-        private static void SeatBorrowed(GameObject clone, Donor donor, Transform nozzle,
-                                         Quaternion splay, float scale)
+        private static bool SeatBorrowed(GameObject clone, Donor donor, Transform nozzle,
+                                         Quaternion splay, float scale, Missile? ours = null)
         {
 
             Quaternion donorLocal = Quaternion.Inverse(donor.Missile.transform.rotation)
@@ -302,6 +297,17 @@ namespace MeridianWorks
 
             clone.transform.localPosition =
                 nozzle.localPosition - (clone.transform.localRotation * (origin * scale));
+
+            if (ours != null && !PointsAft(ours, clone))
+            {
+                clone.transform.localRotation =
+                    Quaternion.AngleAxis(180f, Vector3.up) * clone.transform.localRotation;
+                clone.transform.localPosition =
+                    nozzle.localPosition - (clone.transform.localRotation * (origin * scale));
+                return true;
+            }
+
+            return false;
         }
 
         private static bool PointsAft(Missile ours, GameObject clone) =>
@@ -345,9 +351,8 @@ namespace MeridianWorks
 
                 if (named == null)
                     Plugin.Log.LogWarning(
-                        $"[Meridian] {ourKey}: the {role} donor '{wanted}' the owner picked was not " +
-                        "found, so one was chosen by burn time instead. Check whether that weapon " +
-                        "has been renamed.");
+                $"[Meridian] {ourKey}: the {role} donor '{wanted}' the owner picked was not "
+                + "found, so one was chosen by burn time instead.");
             }
 
             const float wantedBurn = 4f;
@@ -423,7 +428,7 @@ namespace MeridianWorks
                 Trim trim = TrimFor(ourKeyForLog, stage);
 
                 clone.transform.localScale = Vector3.one * (PlumeScale(nozzle) * trim.Width);
-                SeatBorrowed(clone, donor, nozzle, splay, PlumeScale(nozzle) * trim.Width);
+                bool turned = SeatBorrowed(clone, donor, nozzle, splay, PlumeScale(nozzle) * trim.Width, ours);
 
                 if (Mathf.Abs(trim.Aft) > 0.0001f)
                     clone.transform.localPosition += new Vector3(0f, 0f, -trim.Aft);
@@ -441,7 +446,8 @@ namespace MeridianWorks
                     $"n{i} '{nozzle.name}' nozzleLocal=({nozzle.localPosition.x:0.00},{nozzle.localPosition.y:0.00},{nozzle.localPosition.z:0.00})" +
                     $" seat=({seatLocal.x:0.00},{seatLocal.y:0.00},{seatLocal.z:0.00})" +
                     $" fwd=({seatFwd.x:0.00},{seatFwd.y:0.00},{seatFwd.z:0.00})" +
-                    (aft ? " AFT" : " **POINTS FORWARD**"));
+                    (aft ? " AFT" : " **POINTS FORWARD**") +
+                    (turned ? " (TURNED 180 deg to get there)" : ""));
 
                 var cloneParticles = clone.GetComponentsInChildren<ParticleSystem>(true)
                     .Where(x => x.gameObject.activeInHierarchy).ToList();
@@ -484,7 +490,7 @@ namespace MeridianWorks
                     fc.SetActive(true);
 
                     fc.transform.localScale = Vector3.one * flameScale;
-                    SeatBorrowed(fc, fd.Value, nozzle, splay, flameScale);
+                    SeatBorrowed(fc, fd.Value, nozzle, splay, flameScale, ours);
                     NormalizeSimulationSpace(fc, fd.Value.Key);
 
                     var flameParticles = fc.GetComponentsInChildren<ParticleSystem>(true)

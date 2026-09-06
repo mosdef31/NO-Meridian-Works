@@ -47,9 +47,8 @@ namespace MeridianWorks
                 {
                     _warned = true;
                     Plugin.Log.LogWarning(
-                        "[Meridian] HUDLaserGuidedState no longer carries the fields the designation " +
-                        "circle cap reads, so the circle is left at stock behaviour. Check " +
-                        "API-WATCHLIST.md against this game version.");
+                "[Meridian] HUDLaserGuidedState no longer carries the fields the designation "
+                + "circle cap reads, so the circle is left at stock behaviour.");
                 }
                 return;
             }

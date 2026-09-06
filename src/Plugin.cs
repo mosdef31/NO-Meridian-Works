@@ -57,11 +57,10 @@ namespace MeridianWorks
 
         private void Update()
         {
-            if (_attempts > 30)
+
+            if (_attempts > 120)
             {
-                Plugin.Log.LogError(
-                    "[Meridian] Gave up waiting for the Encyclopedia after 30 attempts. Nothing in " +
-                    "this pack is registered, and no weapon will appear in any loadout.");
+                Plugin.Log.LogError("[Meridian] Gave up after 120 attempts, about four minutes.");
                 enabled = false;
                 return;
             }
@@ -76,10 +75,16 @@ namespace MeridianWorks
             {
                 EncyclopediaRegistration.EnsureRegisteredAndRebuild();
 
+                if (EncyclopediaRegistration.ResolvedMounts.Count == 0) return;
+
                 WarheadEffects.RunOnce();
                 NameGate.RunOnce();
 
+                AvailabilityGate.RunOnce();
+
                 EventGate.RunOnce();
+
+                HairpinPod.Place();
 
                 if (Plugin.Diagnostics)
                 {

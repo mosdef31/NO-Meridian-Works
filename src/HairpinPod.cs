@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using HarmonyLib;
 using UnityEngine;
 
@@ -26,15 +27,45 @@ namespace MeridianWorks
         private const float CostPerRound = 0.05f;
         private const float ArmorTierEffectiveness = 5.5f;
 
-        private const float BlastYield = 5f;
-        private const float PierceDamage = 700f;
+        private const float BlastYield = 20f;
+        private const float PierceDamage = 250f;
 
         private const float MaxRange = 6000f;
+
+        private const float FinArea = 0.13f;
+        private const float Torque = 4.0f;
+
+        private static readonly Vector3 Pid = new Vector3(1.3f, 0f, 0.35f);
+
+        private const float FlareRejection = 1.0f;
+
+        private const float PositionalError = 0.2f;
+
+        private const float DriftRate = 10f;
+
+        private const float MaxLead = 6f;
+
+        private const float GuidanceDelay = 0.03f;
+
+        private const float TangibleDelay = 0.1f;
+
+        private const float SelfDestructAtSpeed = 150f;
+
+        private const float TargetMaxAltitude = 100000f;
+        private const float TargetMaxSpeed = 1200f;
+        private const float TargetMinAlignment = 45f;
+        private const float TargetMinRange = 200f;
+
+        private const float TargetMinIR = 0.01f;
+
+        private const float LengthScale = 1.1f;
 
         private static bool _built;
         private static ScriptableObject? _def;
         private static ScriptableObject? _mount;
         private static ScriptableObject? _mountX12;
+
+        private static WeaponInfo? _info;
         private static GameObject? _prefab;
         private static Transform? _park;
 
@@ -68,9 +99,8 @@ namespace MeridianWorks
                 if (donorDef == null)
                 {
                     Plugin.Log.LogWarning(
-                        "[Meridian] AGR-40 Hairpin: no stock AGR-24 Kingpin in this "
-                        + "Encyclopedia, so there is nothing to borrow. The pod is not "
-                        + "registered and nothing else is affected.");
+                "[Meridian] AGR-40 Hairpin: no stock AGR-24 Kingpin in this "
+                + "Encyclopedia, so there is nothing to borrow.");
                     return false;
                 }
 
@@ -83,7 +113,7 @@ namespace MeridianWorks
                     return false;
                 }
 
-                _def = CloneMissile((ScriptableObject)donorDef);
+                _def = CloneMissile((ScriptableObject)donorDef, enc);
                 _mount = CloneMount((ScriptableObject)donorMount, MountKey, "x4");
 
                 object? donorMountX12 = FindDonorMount(enc, DonorMountX12Key);
@@ -93,6 +123,10 @@ namespace MeridianWorks
                     Plugin.Log.LogWarning(
                         "[Meridian] AGR-40 Hairpin: no stock '" + DonorMountX12Key + "' pod in "
                         + "this Encyclopedia, so only the x4 fitting is registered.");
+
+                Plugin.Diag("[Meridian] AGR-40 Hairpin: both fittings share one WeaponInfo "
+                            + $"('{(_info == null ? "none" : _info.name)}'), so the x4 and the x12 "
+                            + "merge into a single weapon station.");
 
                 Plugin.Diag($"[Meridian] AGR-40 Hairpin: cloned '{DonorMissileKey}', "
                             + $"'{DonorMountPrefix}' and '{DonorMountX12Key}' into '{MissileKey}', "
@@ -105,6 +139,8 @@ namespace MeridianWorks
                 Plugin.Log.LogWarning($"[Meridian] AGR-40 Hairpin build failed: {ex.Message}");
                 _def = null;
                 _mount = null;
+                _mountX12 = null;
+                _info = null;
                 return false;
             }
         }
@@ -132,7 +168,7 @@ namespace MeridianWorks
             return null;
         }
 
-        private static ScriptableObject? CloneMissile(ScriptableObject donor)
+        private static ScriptableObject? CloneMissile(ScriptableObject donor, Encyclopedia enc)
         {
             var def = UnityEngine.Object.Instantiate(donor);
             def.name = MissileKey;
@@ -153,13 +189,155 @@ namespace MeridianWorks
                     AccessTools.Field(typeof(Missile), "blastYield")?.SetValue(missile, BlastYield);
                     AccessTools.Field(typeof(Missile), "pierceDamage")?.SetValue(missile, PierceDamage);
                     AccessTools.Field(typeof(Missile), "definition")?.SetValue(missile, def);
+
+                    Tune(missile);
                 }
+
+                SwapToIrSeeker(prefab, enc);
+                Lengthen(prefab);
 
                 fPrefab.SetValue(def, prefab);
                 _prefab = prefab;
             }
 
             return def;
+        }
+
+        private static void Tune(Missile missile)
+        {
+            AccessTools.Field(typeof(Missile), "finArea")?.SetValue(missile, FinArea);
+            AccessTools.Field(typeof(Missile), "torque")?.SetValue(missile, Torque);
+
+            FieldInfo? fPid = AccessTools.Field(typeof(Missile), "PIDFactors");
+            if (fPid != null)
+            {
+                try
+                {
+                    object? factors = NewPidFactors(fPid.FieldType);
+                    if (factors != null)
+                    {
+                        fPid.SetValue(missile, factors);
+                    }
+                    else
+                    {
+                        Plugin.Log.LogWarning("[Meridian] AGR-40 Hairpin: could not build a "
+                            + $"{fPid.FieldType.Name}, so the round keeps the Kingpin's PID. "
+                            + "Handling is stock; the weapon is otherwise fine.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Plugin.Log.LogWarning("[Meridian] AGR-40 Hairpin: PID tune skipped, "
+                        + $"{ex.Message}. The round keeps the Kingpin's PID.");
+                }
+            }
+
+            Plugin.Diag($"[Meridian] AGR-40 Hairpin: finArea {FinArea}, torque {Torque}, "
+                        + $"PID {Pid} - against the Kingpin's 0.07, 0.5 and (1, 0, 0.6).");
+        }
+
+        private static object? NewPidFactors(Type type)
+        {
+            ConstructorInfo? ctor = type.GetConstructor(
+                new[] { typeof(float), typeof(float), typeof(float) });
+            if (ctor != null)
+            {
+                return ctor.Invoke(new object[] { Pid.x, Pid.y, Pid.z });
+            }
+
+            FieldInfo? fVector = AccessTools.Field(type, "PID");
+            if (fVector == null)
+            {
+                return null;
+            }
+
+            object bare = FormatterServices.GetUninitializedObject(type);
+            fVector.SetValue(bare, Pid);
+            return bare;
+        }
+
+        private static void SwapToIrSeeker(GameObject prefab, Encyclopedia enc)
+        {
+            var missile = prefab.GetComponent<Missile>();
+            if (missile == null)
+            {
+                Plugin.Log.LogWarning(
+                    "[Meridian] AGR-40 Hairpin: the borrowed prefab carries no Missile, so the "
+                    + "IR seeker was not fitted. The round keeps whatever guidance it had.");
+                return;
+            }
+
+            IRSeeker? template = FindIrSeekerTemplate(enc);
+            if (template == null)
+            {
+                Plugin.Log.LogWarning(
+                    "[Meridian] AGR-40 Hairpin: no stock round in this Encyclopedia carries an "
+                    + "IRSeeker, so there is nothing to copy a seeker off. The round keeps the "
+                    + "Kingpin's laser guidance.");
+                return;
+            }
+
+            foreach (MissileSeeker old in prefab.GetComponentsInChildren<MissileSeeker>(true))
+            {
+                if (old != null) UnityEngine.Object.DestroyImmediate(old);
+            }
+
+            var seeker = prefab.AddComponent<IRSeeker>();
+
+            foreach (FieldInfo f in AccessTools.GetDeclaredFields(typeof(IRSeeker)))
+            {
+                if (f.IsStatic) continue;
+                try { f.SetValue(seeker, f.GetValue(template)); }
+                catch (Exception ex)
+                {
+                    Plugin.Diag($"[Meridian] AGR-40 Hairpin: seeker field '{f.Name}' not copied, "
+                                + ex.Message + ".");
+                }
+            }
+
+            AccessTools.Field(typeof(MissileSeeker), "missile")?.SetValue(seeker, missile);
+            seeker.triggerMissileWarning = true;
+
+            seeker.proximityFuse = false;
+
+            AccessTools.Field(typeof(IRSeeker), "flareRejection")?.SetValue(seeker, FlareRejection);
+            AccessTools.Field(typeof(IRSeeker), "positionalError")?.SetValue(seeker, PositionalError);
+            AccessTools.Field(typeof(IRSeeker), "driftRate")?.SetValue(seeker, DriftRate);
+            AccessTools.Field(typeof(IRSeeker), "maxLead")?.SetValue(seeker, MaxLead);
+            AccessTools.Field(typeof(IRSeeker), "guidanceDelay")?.SetValue(seeker, GuidanceDelay);
+            AccessTools.Field(typeof(IRSeeker), "tangibleDelay")?.SetValue(seeker, TangibleDelay);
+            AccessTools.Field(typeof(IRSeeker), "selfDestructAtSpeed")?.SetValue(
+                seeker, SelfDestructAtSpeed);
+
+            Plugin.Diag(
+                $"[Meridian] AGR-40 Hairpin: IR seeker fitted off '{template.name}'. Flare "
+                + $"rejection {FlareRejection}, aim error {PositionalError} m, drift {DriftRate} "
+                + $"m/s, lead {MaxLead} s, guidance after {GuidanceDelay} s, impact fuse only.");
+        }
+
+        private static IRSeeker? FindIrSeekerTemplate(Encyclopedia enc)
+        {
+            if (enc.missiles == null) return null;
+
+            foreach (MissileDefinition d in enc.missiles)
+            {
+                if (d == null || d.jsonKey == MissileKey) continue;
+
+                GameObject? p = AccessTools.Field(d.GetType(), "unitPrefab")?.GetValue(d)
+                                as GameObject;
+                if (p == null) continue;
+
+                IRSeeker? found = p.GetComponentInChildren<IRSeeker>(true);
+                if (found != null) return found;
+            }
+
+            return null;
+        }
+
+        private static void Lengthen(GameObject prefab)
+        {
+            Vector3 scale = prefab.transform.localScale;
+            prefab.transform.localScale = new Vector3(scale.x, scale.y, scale.z * LengthScale);
         }
 
         private static ScriptableObject? CloneMount(ScriptableObject donor, string ourKey,
@@ -174,9 +352,13 @@ namespace MeridianWorks
                 mount, Designation + " " + fittingLabel);
 
             FieldInfo? fInfo = AccessTools.Field(mount.GetType(), "info");
-            WeaponInfo? info = null;
+            WeaponInfo? info = _info;
 
-            if (fInfo?.GetValue(mount) is WeaponInfo donorInfo)
+            if (info != null)
+            {
+                fInfo?.SetValue(mount, info);
+            }
+            else if (fInfo?.GetValue(mount) is WeaponInfo donorInfo)
             {
                 info = UnityEngine.Object.Instantiate(donorInfo);
                 info.name = MissileKey + "_WeaponInfo";
@@ -184,19 +366,35 @@ namespace MeridianWorks
 
                 info.weaponName = Designation;
                 info.shortName = ShortName;
+
                 info.description =
-                    "The AGR-40 is a laser guided rocket. A guidance section between the "
-                    + "motor and the warhead turns an ordinary rocket into a precise one, "
-                    + "so a pod of four can be put onto small targets one after another "
-                    + "for very little money. It hits softer than a missile and it is not "
-                    + "meant to reach as far.";
+                    "The AGR-40 is an infrared kinetic interceptor. A heat seeking "
+                    + "guidance section between the motor and the warhead turns an "
+                    + "ordinary rocket into a short range counter to incoming munitions "
+                    + "and light aircraft, detonating on contact. The seeker head is "
+                    + "cheap and is easily decoyed by flares.";
                 info.massPerRound = MassPerRound;
                 info.costPerRound = CostPerRound;
                 info.armorTierEffectiveness = ArmorTierEffectiveness;
+
+                info.laserGuided = false;
+                info.missile = true;
+
+                info.effectiveness.antiSurface = 0.15f;
+                info.effectiveness.antiAir = 0.6f;
+                info.effectiveness.antiMissile = 0.85f;
+                info.effectiveness.antiRadar = 0f;
+
                 info.targetRequirements.maxRange = MaxRange;
+                info.targetRequirements.minRange = TargetMinRange;
+                info.targetRequirements.maxAltitude = TargetMaxAltitude;
+                info.targetRequirements.maxSpeed = TargetMaxSpeed;
+                info.targetRequirements.minAlignment = TargetMinAlignment;
+                info.targetRequirements.minIR = TargetMinIR;
                 if (_prefab != null) info.weaponPrefab = _prefab;
 
                 fInfo.SetValue(mount, info);
+                _info = info;
             }
 
             FieldInfo? fStore = AccessTools.Field(mount.GetType(), "prefab");
@@ -208,6 +406,8 @@ namespace MeridianWorks
 
                 foreach (Weapon wpn in store.GetComponentsInChildren<Weapon>(true))
                     wpn.info = info;
+
+                Lengthen(store);
 
                 fStore.SetValue(mount, store);
             }

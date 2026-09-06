@@ -48,18 +48,13 @@ namespace MeridianWorks
                 {
                     want = DefaultMaxTurnRateDegPerSec;
                     Plugin.Log.LogWarning(
-                        $"[Meridian] {def.jsonKey}: no turn rate listed in PluginInfo.TurnRates, " +
-                        $"so it falls back to {want:0.#} deg/s. That is the heavy-AGM value and " +
-                        "it is wrong for anything air-to-air. Add the round to the table.");
+                $"[Meridian] {def.jsonKey}: no turn rate listed in PluginInfo.TurnRates, "
+                + $"so it falls back to {want:0.#} deg/s.");
                 }
 
                 fRate.SetValue(missile, want);
 
-                Plugin.Log.LogInfo(
-                    $"[Meridian] {def.jsonKey}: maxTurnRate 0 -> {want:0.#} deg/s. " +
-                    $"0.34.2 clamps the turn to min(maxTurnRate, 9.81 * gLimit / speed), so with " +
-                    $"gLimit {limit:0.#} and no rate the allowance is zero and the round flies " +
-                    "straight.");
+                Plugin.Log.LogInfo($"[Meridian] {def.jsonKey}: maxTurnRate 0 -> {want:0.#} deg/s.");
             }
         }
 

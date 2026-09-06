@@ -46,10 +46,18 @@ namespace MeridianWorks
                 {
                     if (set?.weaponOptions == null) continue;
                     foreach (WeaponMount option in set.weaponOptions)
-                        if (option != null && PluginInfo.IsOurMountKey(option.jsonKey)) n++;
+                        if (option != null
+                            && (PluginInfo.IsOurMountKey(option.jsonKey) || IsExtra(option))) n++;
                 }
             }
             return n;
+        }
+
+        private static bool IsExtra(WeaponMount mount)
+        {
+            foreach (WeaponMount extra in EncyclopediaRegistration.ExtraMounts)
+                if (ReferenceEquals(extra, mount)) return true;
+            return false;
         }
 
         private static void Report()
@@ -75,19 +83,26 @@ namespace MeridianWorks
 
                     foreach (WeaponMount option in set.weaponOptions)
                     {
-                        if (option == null || !PluginInfo.IsOurMountKey(option.jsonKey)) continue;
+
+                        if (option == null) continue;
+                        if (!PluginInfo.IsOurMountKey(option.jsonKey) && !IsExtra(option)) continue;
 
                         if (!placed.TryGetValue(option.jsonKey, out List<string> where))
                             placed[option.jsonKey] = where = new List<string>();
 
-                        where.Add($"{wm.name}[{i}]");
+                        where.Add($"{wm.transform.root.name}[{i}] \"{set.name}\"");
                     }
                 }
             }
 
+            var keys = new List<string>();
             foreach (PluginInfo.Weapon w in PluginInfo.Weapons)
+                keys.AddRange(w.MountKeys);
+            foreach (WeaponMount extra in EncyclopediaRegistration.ExtraMounts)
+                if (extra != null && !string.IsNullOrEmpty(extra.jsonKey)) keys.Add(extra.jsonKey);
+
             {
-                foreach (string key in w.MountKeys)
+                foreach (string key in keys)
                 {
                     if (placed.TryGetValue(key, out List<string> where))
                         Plugin.Diag(

@@ -41,10 +41,8 @@ namespace MeridianWorks
             {
                 _warned = true;
                 Plugin.Log.LogWarning(
-                    "[Meridian] Could not reach Encyclopedia's loader to test whether it is ready, " +
-                    "so early lookups fall back to reading it directly. Harmless, but the game will " +
-                    "log 'Encyclopedia was not preloaded by menu' at error level a few times during " +
-                    "startup, and that error is not a fault in this mod.");
+                "[Meridian] Could not reach Encyclopedia's loader to test whether it is ready, "
+                + "so early lookups fall back to reading it directly.");
             }
 
             return _loader != null && _isLoaded != null;

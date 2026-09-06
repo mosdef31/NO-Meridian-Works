@@ -1,6 +1,14 @@
 # Changelog
 
-## Unreleased
+## 1.0.0
+
+The first public release.
+
+**Delete any existing `BepInEx/plugins/MeridianWorks/` folder before installing this
+one.** The asset bundle is embedded in the DLL, and Blueprinter keeps the higher version
+number when it finds two. A leftover bundle from an earlier test build carries a higher
+number than this release does and would quietly win.
+
 
 Nine more weapons, and the pack stops being three air to ground missiles.
 
