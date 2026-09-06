@@ -23,14 +23,14 @@ Anticipate more additions as the pack grows.
 
 ### Air to ground
 
-| Weapon | Guidance | Range | AP | HE | Mass | Cost |
-|---|---|---|---|---|---|---|
-| AGM-84 Warhawk | Optical, datalink | 20 km | 880 | 330 | 660 kg | $1.1m |
-| AGM-57L Bulldog | Laser | 15 km | 382 | 260 | 520 kg | $550k |
-| AGM-33L Hornet | Laser | 12 km | 240 | 130 | 300 kg | $300k |
-| AGM-92 | Optical, datalink | 75 km | 700 | 620 | 1100 kg | $2.6m |
-| ARAD-72 | Radar homing | 70 km | 0 | 90 | 600 kg | $1.4m |
-| AGR-40 Hairpin | Infrared | 6 km | 60 | 14 | 20 kg | $50k |
+| Weapon | Guidance | Range | AP | HE | Mass | Cost | Doctrine |
+|---|---|---|---|---|---|---|---|
+| AGM-84 Warhawk | Optical, datalink | 20 km | 880 | 330 | 660 kg | $1.1m | Hardened opener |
+| AGM-57L Bulldog | Laser | 15 km | 382 | 260 | 520 kg | $550k | Escorted precision |
+| AGM-33L Hornet | Laser | 12 km | 240 | 130 | 300 kg | $300k | Rotary anti armour |
+| AGM-92 | Optical, datalink | 75 km | 700 | 620 | 1100 kg | $2.6m | Deep interdiction |
+| ARAD-72 | Radar homing | 70 km | 0 | 90 | 600 kg | $1.15m | Radar suppression |
+| AGR-40 Hairpin | Infrared | 6 km | 60 | 14 | 20 kg | $50k | Cheap close defence |
 
 - **AGM-84 Warhawk:** locked on before release and needs nothing from you afterwards. A
   datalink keeps the aimpoint fresh, so you can shoot from further out than you can
@@ -53,10 +53,10 @@ The laser rounds need the target lit until impact. That is the trade.
 
 ### Bombs
 
-| Weapon | Guidance | Range | AP | HE | Mass | Cost |
-|---|---|---|---|---|---|---|
-| GBO-900 | Optical, datalink | 20 km | 700 | 620 | 900 kg | $1.9m |
-| GBP-500 Bodkin | Optical | 17 km | 950 | 210 | 560 kg | $1.3m |
+| Weapon | Guidance | Range | AP | HE | Mass | Cost | Doctrine |
+|---|---|---|---|---|---|---|---|
+| GBO-900 | Optical, datalink | 20 km | 700 | 620 | 900 kg | $1.9m | Finisher |
+| GBP-500 Bodkin | Optical | 17 km | 950 | 210 | 560 kg | $1.3m | Accessible penetration |
 
 - **GBO-900:** a heavy glide bomb with a camera in the nose. Released high and fast it
   reaches a long way, and you steer it the whole way down.
@@ -66,18 +66,61 @@ The laser rounds need the target lit until impact. That is the trade.
 
 ### Air to air
 
-| Weapon | Guidance | Range | Warhead | Mass | Cost |
-|---|---|---|---|---|---|
-| AAM-41 Gram | Active radar | 80 km | 26 | 225 kg | $2.3m |
-| AAM-63 Falchion | Active radar | 60 km | 22 | 190 kg | $1.6m |
-| IRM-L7 | Heat | 25 km | 40 | 245 kg | $1.9m |
-| SRM-8 Kukri | Heat | 6.5 km | 7 | 55 kg | $850k |
+| Weapon | Guidance | Range | Warhead | Mass | Cost | Doctrine |
+|---|---|---|---|---|---|---|
+| AAM-41 Gram | Active radar | 100 km | 26 | 240 kg | $2.3m | No escape opener |
+| AAM-63 Falchion | Active radar | 60 km | 22 | 190 kg | $1.6m | Workhorse BVR |
+| IRM-L7 | Heat | 25 km | 40 | 245 kg | $1.5m | Ambush |
+| SRM-8 Kukri | Heat | 6.5 km | 7 | 55 kg | $420k | Merge and last ditch |
 
 - **AAM-41 Gram:** the long one. Its own radar takes over at the end, so you can turn
   away once it is on its way.
 - **AAM-63 Falchion:** shorter and cheaper than the Gram, and quicker off the rail.
 - **IRM-L7:** a heat seeker with a long burn, for shots further out than a dogfight.
 - **SRM-8 Kukri:** small, light and made for close in. Carry a lot of them.
+
+### How to use them
+
+Short version, strengths and weaknesses both. The Doctrine column above is the one word
+answer; this is the rest of it.
+
+- **Hardened opener.** The Warhawk goes first, at the thing that has to be gone before
+  anything else matters: a bunker, a bridge, a revetted launcher. It costs a lot and it
+  is slow, so it is a poor answer to anything that moves.
+- **Escorted precision.** The Bulldog and the Hornet are cheap and accurate and neither
+  can find anything by itself. Somebody has to hold the laser to impact, and that
+  somebody is exposed for the whole run. Bring them when you have a partner, or when you
+  can afford to fly straight.
+- **Deep interdiction.** The AGM-92 is for the target you never see, seventy kilometres
+  away behind everything. It is the most expensive round in the pack and the heaviest
+  thing on the wing, and it is subsonic the whole way, so anything alert will see it
+  coming and have time to do something about it.
+- **Radar suppression.** The ARAD-72 punishes a radar for staying on. Against a
+  disciplined operator who shuts down when it launches, it is an expensive way to buy
+  thirty seconds of silence. That is often worth it. It is worthless against anything
+  that was never radiating.
+- **Cheap close defence.** Hairpins are almost free and there are twelve of them. They
+  are for incoming munitions and light aircraft close in, and flares beat them easily.
+  Volume is the tactic; do not expect any one of them to work.
+- **Finisher.** The GBO-900 is dropped on something already found and already unable to
+  stop it. It has no motor, so it needs height and speed given to it, and a low fast run
+  gives it neither.
+- **Accessible penetration.** The Bodkin goes through the concrete first and detonates
+  second. The warhead is deliberately small: what you are paying for is what it gets
+  through. Wasted on anything soft, which a 210 blast will barely notice.
+- **No escape opener.** The Gram is fired first and from furthest out, and its hundred
+  kilometre figure is the range from which the target cannot simply turn and run. It
+  needs the energy of a long shot to be worth its price; fired close it is an expensive
+  Falchion.
+- **Workhorse BVR.** The Falchion is what you actually carry four of. It goes active late
+  so you can turn away early, and it gives up reach to do it.
+- **Ambush.** The IRM-L7 emits nothing on the way in, so the aircraft it is aimed at gets
+  no warning from its receiver until it is close, and it is stubborn about flares. Fire
+  it from where you are not expected. It is heavy and it does not turn well, so it is a
+  poor answer to anything already turning.
+- **Merge and last ditch.** The Kukri is small, cheap and agile and reaches a little
+  further than a dogfight round usually does, having traded some of its turn for the
+  reach. Carry a lot of them and expect to use them close.
 
 ## Carriage
 
