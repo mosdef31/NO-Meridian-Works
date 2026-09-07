@@ -67,7 +67,7 @@ The laser rounds need the target lit until impact. That is the trade.
 | AAM-63 Falchion | Active radar | 60 km | 22 | 190 kg | $1.6m | Workhorse BVR |
 | IRM-L7 | Heat | 25 km | 40 | 245 kg | $1.5m | Ambush tactics |
 | SRM-8 Kukri | Heat | 6.5 km | 7 | 55 kg | $420k | Merge and dog fighting |
-| AGR-40 Hairpin | Infrared | 6 km | 60 | 14 | 20 kg | $50k | Cheap close defense and anti saturation |
+| AGR-40 Hairpin | Infrared | 6 km | 20 | 20 kg | $50k | Cheap close defense and anti saturation |
 
 - **AAM-41 Gram:** the long one. Its own radar takes over at the end, so you can turn
   away once it is on its way.
@@ -76,8 +76,9 @@ The laser rounds need the target lit until impact. That is the trade.
 - **SRM-8 Kukri:** small, light and made for close in. Carry a lot of them.
 - **AGR-40 Hairpin:** an infrared kinetic interceptor, four or twelve to a pod. A heat
   seeking guidance section screwed into an ordinary rocket, for incoming munitions and
-  light aircraft at close range. It detonates on contact and it is decoyed by flares
-  easily. It goes wherever the stock Kingpin pods go.
+  light aircraft at close range. The blast is small and it is not the point: what kills
+  an incoming missile is the 250 of penetration behind it. It detonates on contact and
+  it is decoyed by flares easily. It goes wherever the stock Kingpin pods go.
   
 ## Carriage
 
