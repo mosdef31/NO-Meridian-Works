@@ -78,7 +78,7 @@ namespace MeridianWorks
                                  "internalx4", "internalx6" }, 0.095f),
             new Weapon("IRM-L7",          "MeridianIRML7",  "IRM-L7",          new[] {
                                  "single", "internal", "x2", "internalx2",
-                                 "internalx4", "internalx6" }, 0.133f),
+                                 "internalx4", "internalx6", "internalx6_tight" }, 0.133f),
             new Weapon("AAM-63 Falchion", "MeridianAAM63",  "AAM-63 Falchion", new[] {
                                  "single", "internal", "double_compact", "triple",
                                  "internalx2", "internalx3", "internalx4", "internalx6",

@@ -60,6 +60,20 @@ namespace MeridianWorks
                     $". The assembly moved {delta:0.000} m.");
         }
 
+        private static readonly string[] ForcedLiftAirframes =
+        {
+            "Aryx_LightFighter1",
+            "Aryx_PropAttacker1",
+        };
+
+        private static bool ForcedLift(Hardpoint hardpoint)
+        {
+            string where = Where(hardpoint);
+            foreach (string name in ForcedLiftAirframes)
+                if (where.StartsWith(name, System.StringComparison.Ordinal)) return true;
+            return false;
+        }
+
         private static void CloseToSkin(Hardpoint hardpoint, WeaponMount mount, GameObject spawned)
         {
             if (hardpoint == null || mount == null || spawned == null) return;
@@ -69,8 +83,10 @@ namespace MeridianWorks
 
             if (root.Find(SkinCloseMarker) != null) return;
 
+            bool forced = ForcedLift(hardpoint);
+
             Renderer? drawn = DrawnStub(hardpoint);
-            if (drawn != null)
+            if (drawn != null && !forced)
             {
 
                 if (_logged.Add("stubsrc|" + Where(hardpoint) + "|" + mount.jsonKey))
@@ -90,8 +106,10 @@ namespace MeridianWorks
             List<Renderer> structure = Structure(root);
             if (structure.Count == 0) return;
 
-            bool measured = MountCantProbe.SkinGap(
-                hardpoint, root, structure, out float gap, out int quadrants);
+            float gap = 0f;
+            int quadrants = 0;
+            bool measured = !forced && MountCantProbe.SkinGap(
+                hardpoint, root, structure, out gap, out quadrants);
 
             bool implausible = measured && gap > MountCantProbe.PlausibleStandoff;
             if (implausible) measured = false;
@@ -114,7 +132,11 @@ namespace MeridianWorks
             {
 
                 lift = MountCantProbe.BlindLift;
-                why = implausible
+                why = forced
+                    ? "this airframe is on the forced list, so the lift was applied without "
+                      + "measuring - every probe here reads the joint as already flush and "
+                      + "the owner can still see a gap on it"
+                    : implausible
                     ? $"the sweep reported {gap:0.0000} m, which is too far to be this mount's "
                       + "own joint, so that reading was discarded and it took the blind lift"
                     : "no airframe surface sits above it in two or more quadrants, so it took "
