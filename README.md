@@ -101,20 +101,43 @@ station cleared for something of the same size and weight gets the option and on
 is not does not. The heat seekers go on pylons only. Air to air weapons on the two
 largest airframes are event content, so a server has to allow it.
 
-## A released weapon cannot hit the aircraft that dropped it
+## What the pack does beyond adding weapons
 
-Everything in the pack is intangible for a moment after release, a second and a half for
-missiles and two seconds for bombs. It cannot strike you and you cannot strike it. It can
-still hit the ground, so a low release still works.
+Most of the work in this mod is not the twelve rounds. It is making them behave like
+weapons the game shipped with.
 
-## Carrying these raises your lased target limit
-
-An aircraft with any Meridian mount fitted holds **six** lased targets instead of the
-stock three, which is what makes a multi-round laser load worth carrying.
-
-It is a floor, not a bonus. If another mod has already raised the limit, this raises it
-the rest of the way to six rather than adding on top, so two mods cannot compound into a
-number neither of them intended.
+- **They are in the Encyclopedia.** Every round and every fitting appears with its real
+  numbers, so you can read what you are about to carry before you carry it.
+- **AI flights carry them.** Friendly and enemy aircraft spawn with Meridian stores at
+  rates set per airframe, so the pack shows up in a mission you did not arm yourself.
+  Before this they never appeared on an AI aircraft at all.
+- **AI pilots use the laser rounds properly.** An AI will no longer fire a laser weapon
+  at a target nothing is lasing. The shot is held briefly until a designation exists,
+  then released.
+- **The fins open whether or not you have a lock.** Folding-fin rounds deploy on launch
+  even when fired at nothing.
+- **A bomb released at nothing flies where you aimed.** Unguided releases follow the
+  bomb sight aim point instead of running away from the aircraft.
+- **The motor holds longer on a wider shot.** Ignition is delayed in proportion to how
+  far off boresight you fire, so a hard cross-body launch gets clear of the aircraft
+  before the motor lights. The seeker is already guiding during that delay.
+- **A released weapon cannot hit the aircraft that dropped it.** Everything is
+  intangible for a moment after release, a second and a half for missiles and two
+  seconds for bombs. It can still hit the ground, so a low release still works.
+- **Carrying any Meridian mount raises your lased target limit to six**, against the
+  stock three, which is what makes a multi-round laser load worth taking. It is a floor
+  and not a bonus, so it will not compound with another mod that raises the same limit.
+- **The IRM-L7 gives its target a tighter window.** Close to impact there is less time
+  to notice it and answer with flares. It is a narrower window, not an unbeatable one.
+- **The AGR-40 Hairpin shoots down missiles.** Cheap guided rockets, four or twelve to a
+  pod, that lock an incoming missile by its heat and kill it on contact. Flares work on
+  them, which is deliberate.
+- **Exhaust plumes and smoke trails are per nozzle**, so a round with several nozzles
+  looks like one, and warhead effects match the stock weapon of the same class.
+- **Mounts wear your livery**, the way stock drop tanks and rocket pods do. The weapons
+  themselves keep their own finish.
+- **An off-boresight ring** marks a target while a heat seeker can still be launched at
+  it, for wide shots where the usual cue sits in the middle of the screen.
 
 ## Installation
 
@@ -131,14 +154,13 @@ higher number than this release does.
 
 ## Settings
 
-Four settings, in `BepInEx/config/com.meridianworks.cfg`.
+Three settings, in `BepInEx/config/com.meridianworks.cfg`.
 
 | Setting | Section | Default | What it does |
 |---|---|---|---|
 | `Diagnostics` | `Meridian Works` | `false` | Writes detailed lines to the BepInEx log describing how each Meridian store is assembled and mounted. |
 | `Off-boresight ring` | `HUD` | `true` | Draws a crossed circle over the target while a Meridian heat seeker can still be launched at it, on wide shots where the usual cue is in the middle of the screen. |
 | `Livery on mounts` | `Appearance` | `true` | Paints Meridian pylons and racks in the aircraft's livery colour, the way stock drop tanks and rocket pods are painted. The weapons themselves keep their own finish. |
-| `Close mounts onto the wing` | `Appearance` | `true` | Raises a mount until it touches the aircraft skin above it, on hardpoints where the game draws no pylon to hang from. Only ever by the gap it measures, and never more than 10 cm. |
 
 Turn `Diagnostics` on if you are reporting a problem with how a weapon looks or where it
 sits, then send the log with your report. Leave it off otherwise; it costs you nothing
