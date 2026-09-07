@@ -116,8 +116,6 @@ weapons the game shipped with.
 - **Variable thrust.** AAM-41 carries two motor profiles, it chooses between an 
   aggressive sprint for short range engagement and more gradual marathon burn for far 
   targets, allowing it to be truly effective along all of its given range.
-- **A bomb released at nothing flies where you aimed.** Unguided releases follow the
-  bomb sight aim point instead of running away from the aircraft.
 - **The motor holds longer on a wider shot.** Ignition is delayed in proportion to how
   far off boresight you fire, so a hard cross-body launch gets clear of the aircraft
   before the motor lights. The seeker is already guiding during that delay.
