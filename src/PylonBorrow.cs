@@ -62,7 +62,6 @@ namespace MeridianWorks
 
         private static void CloseToSkin(Hardpoint hardpoint, WeaponMount mount, GameObject spawned)
         {
-            if (!PluginConfig.CloseMountsToSkin) return;
             if (hardpoint == null || mount == null || spawned == null) return;
             if (!PluginInfo.IsOurMountKey(mount.jsonKey)) return;
 
@@ -70,26 +69,57 @@ namespace MeridianWorks
 
             if (root.Find(SkinCloseMarker) != null) return;
 
-            Renderer? stub = hardpoint.Pylon;
-            if (stub != null && stub.enabled && stub.gameObject.activeInHierarchy) return;
+            Renderer? drawn = DrawnStub(hardpoint);
+            if (drawn != null)
+            {
+
+                if (_logged.Add("stubsrc|" + Where(hardpoint) + "|" + mount.jsonKey))
+                    Plugin.Diag(
+                        $"[Meridian] SKIN {Where(hardpoint)} {mount.jsonKey}: a stub IS drawn "
+                        + $"('{drawn.name}', from "
+                        + (ReferenceEquals(drawn, hardpoint.Pylon)
+                            ? "Hardpoint.Pylon"
+                            : "the pylonOptions array, which this method could not see before "
+                              + "2026-09-07")
+                        + "), so the seating already used it and no lift is applied.");
+                return;
+            }
 
             if (AuthoredMountStub.Replaces(hardpoint)) return;
 
             List<Renderer> structure = Structure(root);
             if (structure.Count == 0) return;
 
-            if (!MountCantProbe.SkinGap(hardpoint, root, structure, out float gap, out int quadrants))
-            {
-                if (_logged.Add("skin|" + Where(hardpoint) + "|" + mount.jsonKey))
-                    Plugin.Diag(
-                        $"[Meridian] SKIN {Where(hardpoint)} {mount.jsonKey}: no airframe surface sits "
-                        + "above this mount in two or more quadrants, so there is nothing to close it "
-                        + "onto and it was left where the seating put it.");
-                return;
-            }
+            bool measured = MountCantProbe.SkinGap(
+                hardpoint, root, structure, out float gap, out int quadrants);
 
-            float lift = Mathf.Min(gap, MountCantProbe.MaxSkinLift);
-            bool capped = gap > MountCantProbe.MaxSkinLift;
+            bool implausible = measured && gap > MountCantProbe.PlausibleStandoff;
+            if (implausible) measured = false;
+
+            float lift;
+            string why;
+            if (measured)
+            {
+
+                float raw = Mathf.Max(gap, 0f);
+                lift = Mathf.Max(raw, MountCantProbe.BlindLift);
+                why = raw < MountCantProbe.BlindLift
+                    ? $"the airframe skin above it was found in {quadrants} of 4 quadrants, "
+                      + $"nearest standoff {raw:0.0000} m, which is under the {MountCantProbe.BlindLift:0.00} m "
+                      + "floor, so it took the floor instead"
+                    : $"the airframe skin above it was found in {quadrants} of 4 quadrants, "
+                      + $"nearest standoff {raw:0.0000} m, so it was raised onto it";
+            }
+            else
+            {
+
+                lift = MountCantProbe.BlindLift;
+                why = implausible
+                    ? $"the sweep reported {gap:0.0000} m, which is too far to be this mount's "
+                      + "own joint, so that reading was discarded and it took the blind lift"
+                    : "no airframe surface sits above it in two or more quadrants, so it took "
+                      + "the blind lift";
+            }
 
             if (lift > MountCantProbe.CleanGap)
             {
@@ -103,13 +133,11 @@ namespace MeridianWorks
 
             if (_logged.Add("skin|" + Where(hardpoint) + "|" + mount.jsonKey))
                 Plugin.Diag(
-                    $"[Meridian] SKIN {Where(hardpoint)} {mount.jsonKey}: no stub is drawn, and the "
-                    + $"airframe skin above this mount was found in {quadrants} of 4 quadrants. "
-                    + $"Nearest standoff {gap:0.0000} m, "
+                    $"[Meridian] SKIN {Where(hardpoint)} {mount.jsonKey}: no stub is drawn, and "
+                    + why + ". "
                     + (lift > MountCantProbe.CleanGap
-                        ? $"so the assembly was raised {lift:0.0000} m onto it"
-                        : "which is already flush, so nothing moved")
-                    + (capped ? $" - CAPPED at the {MountCantProbe.MaxSkinLift:0.00} m ceiling." : "."));
+                        ? $"Raised {lift:0.0000} m."
+                        : "Already flush, so nothing moved."));
         }
 
         private static void SeatReplacingStub(Hardpoint hardpoint, WeaponMount mount, Transform root,
@@ -340,6 +368,10 @@ namespace MeridianWorks
                 }
             }
 
+            Renderer? drawnOption = DrawnStub(hardpoint);
+            if (drawnOption != null && !ReferenceEquals(drawnOption, hardpoint.Pylon))
+                return Extent(root, new List<Renderer> { drawnOption }, out bottom, out top);
+
             if (FPylonOptions?.GetValue(hardpoint) is not Array options) return false;
 
             foreach (object entry in options)
@@ -352,6 +384,28 @@ namespace MeridianWorks
             }
 
             return false;
+        }
+
+        internal static Renderer? DrawnStub(Hardpoint? hardpoint)
+        {
+            if (hardpoint == null) return null;
+
+            if (hardpoint.Pylon != null
+                && hardpoint.Pylon.enabled
+                && hardpoint.Pylon.gameObject.activeInHierarchy)
+                return hardpoint.Pylon;
+
+            if (FPylonOptions?.GetValue(hardpoint) is not Array options) return null;
+
+            foreach (object entry in options)
+            {
+                if (FEntryCargo?.GetValue(entry) is true) continue;
+                if (FEntryRenderer?.GetValue(entry) is not Renderer r) continue;
+                if (r == null || !r.enabled || !r.gameObject.activeInHierarchy) continue;
+                return r;
+            }
+
+            return null;
         }
 
         private static readonly System.Reflection.FieldInfo? FPylonOptions =
@@ -514,9 +568,7 @@ namespace MeridianWorks
             if (!PluginInfo.IsOurMountKey(mount.jsonKey)) return;
 
             Unit? unit = UnitOf(hardpoint);
-            WeaponManager? weapons = unit != null
-                ? unit.GetComponentInChildren<WeaponManager>(true)
-                : hardpoint.transform.GetComponentInParent<WeaponManager>();
+            WeaponManager? weapons = ManagerOf(unit, hardpoint);
             if (weapons == null)
             {
                 if (_logged.Add("paint|" + Where(hardpoint) + "|" + mount.jsonKey))
@@ -564,6 +616,30 @@ namespace MeridianWorks
                     + "renderer(s) registered as colorables, and mirrored onto URP/Lit's _BaseColor, "
                     + "so the mount takes the aircraft's livery colour. The round keeps its own finish. "
                     + $"Livery {(livery != null ? "was already loaded and applied now" : "has not loaded yet, so it paints on load")}.");
+        }
+
+        private static WeaponManager? ManagerOf(Unit? unit, Hardpoint hardpoint)
+        {
+            if (unit is Aircraft aircraft && aircraft.weaponManager != null)
+                return aircraft.weaponManager;
+
+            if (unit != null)
+            {
+                WeaponManager? inChildren = unit.GetComponentInChildren<WeaponManager>(true);
+                if (inChildren != null) return inChildren;
+            }
+
+            if (hardpoint != null && hardpoint.transform != null)
+            {
+                WeaponManager? up = hardpoint.transform.GetComponentInParent<WeaponManager>();
+                if (up != null) return up;
+
+                Transform root = hardpoint.transform.root;
+                WeaponManager? swept = root.GetComponentInChildren<WeaponManager>(true);
+                if (swept != null) return swept;
+            }
+
+            return null;
         }
 
         private static readonly System.Reflection.FieldInfo? FLiveryData =

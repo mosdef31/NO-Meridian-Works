@@ -415,9 +415,14 @@ namespace MeridianWorks
             return mount;
         }
 
+        internal static int LastSetsExamined { get; private set; }
+
+        internal static int LastKingpinSets { get; private set; }
+
         internal static int Place()
         {
             int sets = 0;
+            int kingpinSets = 0;
             int addedX4 = 0;
             int addedX12 = 0;
 
@@ -446,6 +451,8 @@ namespace MeridianWorks
                         else if (m.jsonKey.StartsWith(DonorMountPrefix)) anyKingpin = true;
                     }
 
+                    if (anyKingpin) kingpinSets++;
+
                     if (_mount != null && anyKingpin && !hasX4)
                     {
                         set.Add((WeaponMount)(object)_mount);
@@ -460,9 +467,14 @@ namespace MeridianWorks
                 }
             }
 
-            Plugin.Diag($"[Meridian] AGR-40 Hairpin: x4 placed on {addedX4} hardpoint set(s) "
-                        + $"wherever any {DonorMountPrefix} sits, x12 on {addedX12} wherever a "
-                        + $"{DonorMountX12Key} sits, out of {sets} set(s) examined.");
+            LastSetsExamined = sets;
+            LastKingpinSets = kingpinSets;
+
+            if (addedX4 > 0 || addedX12 > 0)
+                Plugin.Diag($"[Meridian] AGR-40 Hairpin: x4 placed on {addedX4} hardpoint set(s) "
+                            + $"wherever any {DonorMountPrefix} sits, x12 on {addedX12} wherever a "
+                            + $"{DonorMountX12Key} sits, out of {sets} set(s) examined, "
+                            + $"{kingpinSets} of which offer a Kingpin.");
             return addedX4 + addedX12;
         }
 
@@ -476,6 +488,56 @@ namespace MeridianWorks
                 if (set == null || set.weaponOptions == null) continue;
                 yield return set.weaponOptions;
             }
+        }
+    }
+
+    internal sealed class HairpinPlacer : MonoBehaviour
+    {
+
+        private const float FastInterval = 4f;
+
+        private const float SlowInterval = 30f;
+
+        private const int SettledAfter = 3;
+
+        private float _next;
+        private int _lastSets = -1;
+        private int _steady;
+
+        private void Update()
+        {
+            if (Time.unscaledTime < _next) return;
+
+            int added;
+            try
+            {
+                added = HairpinPod.Place();
+            }
+            catch (Exception ex)
+            {
+
+                Plugin.Log.LogWarning("[Meridian] AGR-40 Hairpin: a placement walk failed, "
+                                      + "and it will be retried: " + ex.Message);
+                _next = Time.unscaledTime + SlowInterval;
+                return;
+            }
+
+            int sets = HairpinPod.LastSetsExamined;
+            if (sets != _lastSets)
+            {
+                if (_lastSets >= 0)
+                    Plugin.Diag($"[Meridian] AGR-40 Hairpin: {sets - _lastSets} more hardpoint "
+                                + $"set(s) have loaded since the last walk, {sets} visible now, "
+                                + $"{HairpinPod.LastKingpinSets} of them offering a Kingpin.");
+                _lastSets = sets;
+                _steady = 0;
+            }
+            else if (added == 0)
+            {
+                _steady++;
+            }
+
+            _next = Time.unscaledTime + (_steady >= SettledAfter ? SlowInterval : FastInterval);
         }
     }
 }

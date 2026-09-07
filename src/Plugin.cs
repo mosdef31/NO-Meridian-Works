@@ -41,6 +41,11 @@ namespace MeridianWorks
                 hideFlags = HideFlags.HideAndDontSave
             };
 
+            new GameObject(nameof(HairpinPlacer), typeof(HairpinPlacer))
+            {
+                hideFlags = HideFlags.HideAndDontSave
+            };
+
             Log.LogInfo($"[Meridian] {PluginInfo.Name} {PluginInfo.Version} loaded.");
         }
 

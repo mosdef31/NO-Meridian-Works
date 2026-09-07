@@ -16,6 +16,10 @@ namespace MeridianWorks
 
         internal const float MaxSkinLift = 0.10f;
 
+        internal const float BlindLift = 0.05f;
+
+        internal const float PlausibleStandoff = 0.10f;
+
         internal static void Report(Hardpoint? hardpoint, WeaponMount? mount, GameObject? spawned)
         {
             if (!Plugin.Diagnostics) return;
@@ -61,8 +65,8 @@ namespace MeridianWorks
                 return;
             }
 
-            Renderer? stub = hardpoint != null ? hardpoint.Pylon : null;
-            bool stubDrawn = stub != null && stub.enabled && stub.gameObject.activeInHierarchy;
+            Renderer? stub = PylonBorrow.DrawnStub(hardpoint);
+            bool stubDrawn = stub != null;
 
             Vector2 min, max;
             if (!Footprint(root, ours, out min, out max))
@@ -89,26 +93,15 @@ namespace MeridianWorks
             if (!stubDrawn)
             {
 
-                var skin = new List<Renderer>();
                 Transform? air = hardpoint != null ? hardpoint.transform.root : null;
-                if (air != null)
-                {
-                    foreach (Renderer r in air.GetComponentsInChildren<Renderer>(true))
-                    {
-                        if (!r.enabled || !r.gameObject.activeInHierarchy) continue;
-                        if (r.transform.IsChildOf(root)) continue;
-                        if (r.GetComponentInParent<MountedMissile>() != null) continue;
-                        skin.Add(r);
-                    }
-                }
 
                 float ourTop = Mathf.Max(Mathf.Max(ourFore, ourAft), Mathf.Max(ourLeft, ourRight));
                 float floorY = ourTop - CleanGap;
 
-                float skinFore = BottomAbove(root, skin, cx - hx, cx + hx, cz, cz + hz, floorY);
-                float skinAft = BottomAbove(root, skin, cx - hx, cx + hx, cz - hz, cz, floorY);
-                float skinLeft = BottomAbove(root, skin, cx - hx, cx, cz - hz, cz + hz, floorY);
-                float skinRight = BottomAbove(root, skin, cx, cx + hx, cz - hz, cz + hz, floorY);
+                float skinFore = SkinAbove(root, air, cx - hx, cx + hx, cz, cz + hz, floorY);
+                float skinAft = SkinAbove(root, air, cx - hx, cx + hx, cz - hz, cz, floorY);
+                float skinLeft = SkinAbove(root, air, cx - hx, cx, cz - hz, cz + hz, floorY);
+                float skinRight = SkinAbove(root, air, cx, cx + hx, cz - hz, cz + hz, floorY);
 
                 bool haveSkin = !float.IsPositiveInfinity(skinFore)
                              && !float.IsPositiveInfinity(skinAft)
@@ -209,37 +202,28 @@ namespace MeridianWorks
             float ourLeft = TopIn(root, ours, cx - hx, cx, cz - hz, cz + hz);
             float ourRight = TopIn(root, ours, cx, cx + hx, cz - hz, cz + hz);
 
-            var skin = new List<Renderer>();
             Transform air = hardpoint.transform.root;
-            foreach (Renderer r in air.GetComponentsInChildren<Renderer>(true))
-            {
-                if (!r.enabled || !r.gameObject.activeInHierarchy) continue;
-                if (r.transform.IsChildOf(root)) continue;
-                if (r.GetComponentInParent<MountedMissile>() != null) continue;
-                skin.Add(r);
-            }
-            if (skin.Count == 0) return false;
 
             float ourTop = Mathf.Max(Mathf.Max(ourFore, ourAft), Mathf.Max(ourLeft, ourRight));
             float floorY = ourTop - CleanGap;
 
             float best = float.PositiveInfinity;
-            Consider(root, skin, cx - hx, cx + hx, cz, cz + hz, floorY, ourFore, ref best, ref quadrants);
-            Consider(root, skin, cx - hx, cx + hx, cz - hz, cz, floorY, ourAft, ref best, ref quadrants);
-            Consider(root, skin, cx - hx, cx, cz - hz, cz + hz, floorY, ourLeft, ref best, ref quadrants);
-            Consider(root, skin, cx, cx + hx, cz - hz, cz + hz, floorY, ourRight, ref best, ref quadrants);
+            Consider(root, air, cx - hx, cx + hx, cz, cz + hz, floorY, ourFore, ref best, ref quadrants);
+            Consider(root, air, cx - hx, cx + hx, cz - hz, cz, floorY, ourAft, ref best, ref quadrants);
+            Consider(root, air, cx - hx, cx, cz - hz, cz + hz, floorY, ourLeft, ref best, ref quadrants);
+            Consider(root, air, cx, cx + hx, cz - hz, cz + hz, floorY, ourRight, ref best, ref quadrants);
 
             if (quadrants < 2 || float.IsPositiveInfinity(best)) return false;
             minGap = best;
             return true;
         }
 
-        private static void Consider(Transform root, List<Renderer> skin,
+        private static void Consider(Transform root, Transform? air,
                                      float x0, float x1, float z0, float z1,
                                      float floorY, float ourTopHere,
                                      ref float best, ref int quadrants)
         {
-            float skinY = BottomAbove(root, skin, x0, x1, z0, z1, floorY);
+            float skinY = SkinAbove(root, air, x0, x1, z0, z1, floorY);
             if (float.IsPositiveInfinity(skinY)) return;
             quadrants++;
             float gap = skinY - ourTopHere;
@@ -268,6 +252,41 @@ namespace MeridianWorks
             foreach (Vector3 p in Corners(root, renderers))
                 if (p.x >= x0 && p.x <= x1 && p.z >= z0 && p.z <= z1 && p.y > best) best = p.y;
             return best == float.MinValue ? 0f : best;
+        }
+
+        private static float SkinAbove(Transform root, Transform? air,
+                                       float x0, float x1, float z0, float z1, float floorY)
+        {
+            if (air == null) return float.PositiveInfinity;
+
+            Vector3 up = root.TransformDirection(Vector3.up).normalized;
+            float best = float.PositiveInfinity;
+
+            for (int ix = 0; ix < 3; ix++)
+            {
+                for (int iz = 0; iz < 3; iz++)
+                {
+                    float x = Mathf.Lerp(x0, x1, ix * 0.5f);
+                    float z = Mathf.Lerp(z0, z1, iz * 0.5f);
+                    Vector3 from = root.TransformPoint(new Vector3(x, floorY, z));
+
+                    RaycastHit[] hits = Physics.RaycastAll(
+                        from, up, PlausibleStandoff, ~0, QueryTriggerInteraction.Ignore);
+
+                    foreach (RaycastHit hit in hits)
+                    {
+                        Transform t = hit.collider.transform;
+                        if (t.IsChildOf(root)) continue;
+                        if (t.GetComponentInParent<MountedMissile>() != null) continue;
+                        if (t.root != air) continue;
+
+                        float y = root.InverseTransformPoint(hit.point).y;
+                        if (y >= floorY && y < best) best = y;
+                    }
+                }
+            }
+
+            return best;
         }
 
         private static float BottomAbove(Transform root, List<Renderer> renderers,

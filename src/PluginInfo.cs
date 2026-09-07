@@ -83,10 +83,10 @@ namespace MeridianWorks
                                  "single", "internal", "double_compact", "triple",
                                  "internalx2", "internalx3", "internalx4", "internalx6",
                                  "internalx8" }, 0.106f),
-            new Weapon("ARAD-72",         "MeridianARAD72", "ARAD-72",         new[] { "single", "internal", "internalx2", "internalx4" }, 0.320f),
+            new Weapon("ARAD-72",         "MeridianARAD72", "ARAD-72",         new[] { "single", "internal", "internalx2", "internalx4" }, 0.180f),
             new Weapon("GBO-900",         "MeridianGBO900", "GBO-900",         new[] { "single", "internal", "internalx2" }, 0.232f),
 
-            new Weapon("AGM-92",          "MeridianAGM92",  "AGM-92",          new[] { "single", "internal" }, 0.271f),
+            new Weapon("AGM-92",          "MeridianAGM92",  "AGM-92",          new[] { "single", "internal" }, 0.234f),
             new Weapon("GBP-500 Bodkin",  "MeridianGBP500", "GBP-500 Bodkin",  new[] {
                                  "single", "internal", "x2", "internalx2",
                                  "internalx4", "internalx6", "internalx6_flat", "internalx18" }, 0.189f),

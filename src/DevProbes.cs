@@ -46,8 +46,7 @@ namespace MeridianWorks
                 {
                     if (set?.weaponOptions == null) continue;
                     foreach (WeaponMount option in set.weaponOptions)
-                        if (option != null
-                            && (PluginInfo.IsOurMountKey(option.jsonKey) || IsExtra(option))) n++;
+                        if (option != null && PluginInfo.IsOurMountKey(option.jsonKey)) n++;
                 }
             }
             return n;
@@ -95,6 +94,23 @@ namespace MeridianWorks
                 }
             }
 
+            int bundlePlaced = 0;
+            foreach (string k in placed.Keys)
+                if (PluginInfo.IsOurMountKey(k)) bundlePlaced++;
+
+            if (bundlePlaced == 0)
+            {
+                Plugin.Log.LogWarning(
+                    "[Meridian] Loadout probe: NOT ONE bundle mount is on any hardpoint set. "
+                    + "That is not 60-odd separate manifest faults, it is Blueprinter's "
+                    + "PatchRunner not having applied the manifest at the moment this ran - so "
+                    + "no per-mount verdict is printed, because none of them would mean "
+                    + "anything. If this line appears on a settled game rather than at load, "
+                    + "check that the manifest shipped inside the DLL and that no second copy "
+                    + "of the pack is installed.");
+                return;
+            }
+
             var keys = new List<string>();
             foreach (PluginInfo.Weapon w in PluginInfo.Weapons)
                 keys.AddRange(w.MountKeys);
@@ -105,8 +121,10 @@ namespace MeridianWorks
                 foreach (string key in keys)
                 {
                     if (placed.TryGetValue(key, out List<string> where))
+
                         Plugin.Diag(
-                            $"[Meridian] Loadout probe: '{key}' is an option on {where.Count} set(s) - " +
+                            $"[Meridian] Loadout probe: '{key}' is an option on {where.Count} set(s) " +
+                            "at the moment of this report - " +
                             string.Join(", ", where.Take(12).ToArray()) +
                             (where.Count > 12 ? ", ..." : ""));
                     else if (PluginInfo.IsArchivedMountKey(key))

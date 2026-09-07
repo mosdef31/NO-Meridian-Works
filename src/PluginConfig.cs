@@ -17,10 +17,6 @@ namespace MeridianWorks
 
         internal static bool LiveryMounts => LiveryMountsEntry?.Value ?? true;
 
-        internal static ConfigEntry<bool>? CloseMountsToSkinEntry;
-
-        internal static bool CloseMountsToSkin => CloseMountsToSkinEntry?.Value ?? true;
-
         internal static void Bind(ConfigFile config)
         {
             DiagnosticsEntry = config.Bind(
@@ -48,14 +44,6 @@ namespace MeridianWorks
                 "way stock drop tanks and rocket pods are painted. The weapons themselves " +
                 "keep their own finish. Turn it off to leave every mount in its factory grey.");
 
-            CloseMountsToSkinEntry = config.Bind(
-                "Appearance",
-                "Close mounts onto the wing",
-                true,
-                "Raise a Meridian Works mount until it touches the aircraft skin above it, on " +
-                "hardpoints where the game draws no pylon to hang from. Only ever raises by the " +
-                "gap it measures, never more than 10 cm, and never on a mount that already has " +
-                "something to sit against. Turn it off to leave every mount where the game puts it.");
         }
     }
 }

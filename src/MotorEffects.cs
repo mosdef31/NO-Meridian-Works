@@ -216,22 +216,33 @@ namespace MeridianWorks
                 { "MeridianAGM33L_Missile",
                     new Recipe("AGM-68", 8f,
                         new FlameLayer("AAM-29", 1f, "FireParticlesBooster")) },
+
+                { "MeridianAAM41_Missile",
+                    new Recipe("AAM-29", 0f,
+                        new FlameLayer("AAM-29", 1f, "FireParticlesBooster")) },
             };
 
         private readonly struct Trim
         {
-            internal Trim(float aft, float width = 1f) { Aft = aft; Width = width; }
+            internal Trim(float aft, float width = 1f, float glow = 1f, float blue = 0f)
+            {
+                Aft = aft; Width = width; Glow = glow; Blue = blue;
+            }
 
             internal float Aft { get; }
 
             internal float Width { get; }
+
+            internal float Glow { get; }
+
+            internal float Blue { get; }
         }
 
         private static readonly Dictionary<string, Trim> Trims =
             new Dictionary<string, Trim>
             {
 
-                { "MeridianAAM41_Missile/1", new Trim(0.50f, 0.70f) },
+                { "MeridianAAM41_Missile/1", new Trim(0.50f, 0.55f, 0.60f, 0.12f) },
 
                 { "MeridianARAD72_Missile/1", new Trim(0.20f) },
                 { "MeridianAAM63_Missile/1",  new Trim(0.20f) },
@@ -403,6 +414,9 @@ namespace MeridianWorks
             if (motor == null) return;
 
             string ourKeyForLog = Key(ours);
+
+            SeekerAimProbe.Report(ours.gameObject, ourKeyForLog);
+
             var particles = new List<ParticleSystem>();
             var trails = new List<TrailEmitter>();
             var lights = new List<Light>();
@@ -423,7 +437,8 @@ namespace MeridianWorks
                 GameObject clone = UnityEngine.Object.Instantiate(donor.Fx.gameObject, parent);
                 clone.name = $"Nozzle{i}_Plume";
 
-                if (recipe.HasFlames) KeepRole(clone, keepFlame: false, onlyNamed: null);
+                if (stage == 0 && recipe.HasFlames)
+                    KeepRole(clone, keepFlame: false, onlyNamed: null);
 
                 Trim trim = TrimFor(ourKeyForLog, stage);
 
@@ -434,6 +449,9 @@ namespace MeridianWorks
                     clone.transform.localPosition += new Vector3(0f, 0f, -trim.Aft);
 
                 clone.SetActive(true);
+
+                if (trim.Glow < 0.999f) DimLights(clone, trim.Glow);
+                if (trim.Blue > 0.0001f) BlueShift(clone, trim.Blue);
 
                 NormalizeSimulationSpace(clone, donor.Key);
 
@@ -473,7 +491,9 @@ namespace MeridianWorks
                 ScaleWorldSpaceEffects(clone, cloneLights, PlumeScale(nozzle));
                 lights.AddRange(cloneLights);
 
-                FlameLayer[] layers = recipe.Flames ?? Array.Empty<FlameLayer>();
+                FlameLayer[] layers = stage == 0
+                    ? (recipe.Flames ?? Array.Empty<FlameLayer>())
+                    : Array.Empty<FlameLayer>();
                 for (int f = 0; f < layers.Length; f++)
                 {
                     FlameLayer layer = layers[f];
@@ -583,6 +603,49 @@ namespace MeridianWorks
             float radius = nozzle.localScale.x;
             if (radius <= 0.0001f) return 1f;
             return Mathf.Clamp(radius / ReferenceNozzleRadius, MinPlumeScale, 1f);
+        }
+
+        private static void DimLights(GameObject clone, float glow)
+        {
+            foreach (Light l in clone.GetComponentsInChildren<Light>(true))
+            {
+                if (l == null) continue;
+                l.intensity *= glow;
+            }
+        }
+
+        private static void BlueShift(GameObject clone, float amount)
+        {
+            foreach (ParticleSystem ps in clone.GetComponentsInChildren<ParticleSystem>(true))
+            {
+                if (ps == null) continue;
+                ParticleSystem.MainModule main = ps.main;
+                ParticleSystem.MinMaxGradient c = main.startColor;
+                if (c.mode == ParticleSystemGradientMode.Color)
+                    main.startColor = new ParticleSystem.MinMaxGradient(Cooler(c.color, amount));
+                else if (c.mode == ParticleSystemGradientMode.TwoColors)
+                    main.startColor = new ParticleSystem.MinMaxGradient(
+                        Cooler(c.colorMin, amount), Cooler(c.colorMax, amount));
+            }
+
+            foreach (Light l in clone.GetComponentsInChildren<Light>(true))
+            {
+                if (l == null) continue;
+                l.color = Cooler(l.color, amount);
+            }
+        }
+
+        private static Color Cooler(Color c, float amount)
+        {
+            Color.RGBToHSV(c, out float h, out float sat, out float v);
+
+            const float Blue = 0.6667f;
+            float target = h > 0.35f ? Blue : Blue - 1f;
+            float shifted = Mathf.Repeat(Mathf.Lerp(h, target, amount), 1f);
+
+            Color outC = Color.HSVToRGB(shifted, sat, v);
+            outC.a = c.a;
+            return outC;
         }
 
         private static bool _scaleLogged;
