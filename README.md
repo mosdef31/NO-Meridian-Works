@@ -79,7 +79,27 @@ The laser rounds need the target lit until impact. That is the trade.
   light aircraft at close range. The blast is small and it is not the point: what kills
   an incoming missile is the 250 of penetration behind it. It detonates on contact and
   it is decoyed by flares easily. It goes wherever the stock Kingpin pods go.
-  
+
+### Brought back
+
+Not everything in the pack is new. This one the game already finished, and never let
+you fly.
+
+| Weapon | Guidance | Range | AP | HE | Mass | Cost | Doctrine |
+|---|---|---|---|---|---|---|---|
+| PAB-125HD | None | 4 km | 250 | 150 | 125 kg | $10k | Low level attack on vehicles |
+
+- **PAB-125HD:** a high drag 125 kg bomb, three to a rack. Four petals open behind it as
+  it leaves the aircraft and hold it back, so you are clear before it lands and you can
+  attack from very low down. It is cheap, it is unguided, and it is the only thing here
+  you would drop from under a hundred metres.
+
+  It is not ours. The game ships it complete, with its own model, its retarder fins, its
+  damage and its Encyclopedia entry, and it has never been possible to fly: the only rack
+  it fits was switched off, so it never reaches the loadout screen. Meridian Works turns
+  that rack back on and offers it on every station that already carries the plain
+  PAB-125, thirteen airframes in all.
+
 ## Carriage
 
 | Weapon | Pylon | Bay |
@@ -96,6 +116,7 @@ The laser rounds need the target lit until impact. That is the trade.
 | IRM-L7 | single, twin | none |
 | SRM-8 Kukri | single, twin | none |
 | AGR-40 Hairpin | four-round pod, twelve-round pod | none |
+| PAB-125HD | triple | none |
 
 Where a fitting appears is decided by what the aircraft already carries there, so a
 station cleared for something of the same size and weight gets the option and one that
@@ -131,6 +152,8 @@ weapons the game shipped with.
   themselves keep their own finish.
 - **An off-boresight ring** marks a target while a heat seeker can still be launched at
   it, for wide shots where the usual cue sits in the middle of the screen.
+- **A finished stock weapon is put back in your hands.** The PAB-125HD high drag bomb,
+  described above, which the game shipped and left switched off.
 
 ## Installation
 
