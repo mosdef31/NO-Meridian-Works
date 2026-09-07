@@ -106,16 +106,12 @@ largest airframes are event content, so a server has to allow it.
 Most of the work in this mod is not the twelve rounds. It is making them behave like
 weapons the game shipped with.
 
-- **They are in the Encyclopedia.** Every round and every fitting appears with its real
-  numbers, so you can read what you are about to carry before you carry it.
 - **AI flights carry them.** Friendly and enemy aircraft spawn with Meridian stores at
   rates set per airframe, so the pack shows up in a mission you did not arm yourself.
   Before this they never appeared on an AI aircraft at all.
 - **AI pilots use the laser rounds properly.** An AI will no longer fire a laser weapon
   at a target nothing is lasing. The shot is held briefly until a designation exists,
   then released.
-- **The fins open whether or not you have a lock.** Folding-fin rounds deploy on launch
-  even when fired at nothing.
 - **A bomb released at nothing flies where you aimed.** Unguided releases follow the
   bomb sight aim point instead of running away from the aircraft.
 - **The motor holds longer on a wider shot.** Ignition is delayed in proportion to how
@@ -129,11 +125,6 @@ weapons the game shipped with.
   and not a bonus, so it will not compound with another mod that raises the same limit.
 - **The IRM-L7 gives its target a tighter window.** Close to impact there is less time
   to notice it and answer with flares. It is a narrower window, not an unbeatable one.
-- **The AGR-40 Hairpin shoots down missiles.** Cheap guided rockets, four or twelve to a
-  pod, that lock an incoming missile by its heat and kill it on contact. Flares work on
-  them, which is deliberate.
-- **Exhaust plumes and smoke trails are per nozzle**, so a round with several nozzles
-  looks like one, and warhead effects match the stock weapon of the same class.
 - **Mounts wear your livery**, the way stock drop tanks and rocket pods do. The weapons
   themselves keep their own finish.
 - **An off-boresight ring** marks a target while a heat seeker can still be launched at
