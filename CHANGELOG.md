@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.1
+
+Bomb fixes. Nothing was added.
+
+- The GBP-500 Bodkin no longer bursts in the air short of the target. It was destroying
+  itself the moment it arrived over the aimpoint, and dropped in a stick each bomb went
+  off earlier and higher than the one before it.
+- The Bodkin goes through a hardened target again before it detonates, which is what the
+  weapon is for. What it punches through is unchanged.
+- The eighteen round Bodkin block no longer shows through the Darkreach's inner bay
+  floor.
+- The PAB-125HD is written up in the README. It is not new here: 1.0.0 already switched
+  it back on.
+
 ## 1.0.0
 
 The first public release.
