@@ -112,6 +112,9 @@ weapons the game shipped with.
 - **AI pilots use the laser rounds properly.** An AI will no longer fire a laser weapon
   at a target nothing is lasing. The shot is held briefly until a designation exists,
   then released.
+- **Variable thrust.** AAM-41 carries two motor profiles, it chooses between an 
+  aggressive sprint for short range engagement and more gradual marathon burn for far 
+  targets, allowing it to be truly effective along all of its given range.
 - **A bomb released at nothing flies where you aimed.** Unguided releases follow the
   bomb sight aim point instead of running away from the aircraft.
 - **The motor holds longer on a wider shot.** Ignition is delayed in proportion to how
