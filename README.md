@@ -30,7 +30,6 @@ Anticipate more additions as the pack grows.
 | AGM-33L Hornet | Laser | 12 km | 240 | 130 | 300 kg | $300k | Medium CAS |
 | AGM-92 | Optical, datalink | 75 km | 700 | 620 | 1100 kg | $2.6m | Long range finisher |
 | ARAD-72 | Radar homing | 70 km | 0 | 90 | 600 kg | $1.15m | SEAD |
-| AGR-40 Hairpin | Infrared | 6 km | 60 | 14 | 20 kg | $50k | Cheap close defense and anti saturation |
 
 - **AGM-84 Warhawk:** locked on before release and needs nothing from you afterwards. A
   datalink keeps the aimpoint fresh, so you can shoot from further out than you can
@@ -44,10 +43,6 @@ Anticipate more additions as the pack grows.
   The longest reach in the pack, and the heaviest thing you can hang on a wing.
 - **ARAD-72:** homes on a radar that is transmitting. Fire it at a search site and it
   finds its own way there.
-- **AGR-40 Hairpin:** an infrared kinetic interceptor, four or twelve to a pod. A heat
-  seeking guidance section screwed into an ordinary rocket, for incoming munitions and
-  light aircraft at close range. It detonates on contact and it is decoyed by flares
-  easily. It goes wherever the stock Kingpin pods go.
 
 The laser rounds need the target lit until impact. That is the trade.
 
@@ -72,13 +67,18 @@ The laser rounds need the target lit until impact. That is the trade.
 | AAM-63 Falchion | Active radar | 60 km | 22 | 190 kg | $1.6m | Workhorse BVR |
 | IRM-L7 | Heat | 25 km | 40 | 245 kg | $1.5m | Ambush tactics |
 | SRM-8 Kukri | Heat | 6.5 km | 7 | 55 kg | $420k | Merge and dog fighting |
+| AGR-40 Hairpin | Infrared | 6 km | 60 | 14 | 20 kg | $50k | Cheap close defense and anti saturation |
 
 - **AAM-41 Gram:** the long one. Its own radar takes over at the end, so you can turn
   away once it is on its way.
 - **AAM-63 Falchion:** shorter and cheaper than the Gram, and quicker off the rail.
 - **IRM-L7:** a heat seeker with a long burn, for shots further out than a dogfight.
 - **SRM-8 Kukri:** small, light and made for close in. Carry a lot of them.
-
+- **AGR-40 Hairpin:** an infrared kinetic interceptor, four or twelve to a pod. A heat
+  seeking guidance section screwed into an ordinary rocket, for incoming munitions and
+  light aircraft at close range. It detonates on contact and it is decoyed by flares
+  easily. It goes wherever the stock Kingpin pods go.
+  
 ## Carriage
 
 | Weapon | Pylon | Bay |
