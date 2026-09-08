@@ -28,7 +28,7 @@ Anticipate more additions as the pack grows.
 | AGM-84 Warhawk | Optical, datalink | 20 km | 880 | 330 | 660 kg | $1.1m | Anti structures and hardened targets |
 | AGM-57L Bulldog | Laser | 15 km | 382 | 260 | 520 kg | $550k | Heavy CAS |
 | AGM-33L Hornet | Laser | 12 km | 240 | 130 | 300 kg | $300k | Medium CAS |
-| AGM-92 | Optical, datalink | 75 km | 700 | 620 | 1100 kg | $2.6m | Long range finisher |
+| AGM-92 | Optical, datalink | 90 km | 700 | 620 | 1100 kg | $2.6m | Long range finisher |
 | ARAD-72 | Radar homing | 70 km | 0 | 90 | 600 kg | $1.15m | SEAD |
 
 - **AGM-84 Warhawk:** locked on before release and needs nothing from you afterwards. A
@@ -38,9 +38,10 @@ Anticipate more additions as the pack grows.
   warhead, and cheaper and lighter than anything fire and forget in the same role.
 - **AGM-33L Hornet:** the light one, for helicopters and light attack aircraft. A guided
   answer to armour at a price nothing fire and forget reaches.
-- **AGM-92:** a cruise missile. A booster gets it moving and a long, slow sustainer holds
-  it just under the speed of sound for most of the way to a target you may never see.
-  The longest reach in the pack, and the heaviest thing you can hang on a wing.
+- **AGM-92:** a cruise missile. A booster gets it moving and a long sustainer holds it
+  near the speed of sound for essentially the whole way to a target you may never see.
+  The longest reach of anything air to ground here, and the heaviest thing you can hang
+  on a wing.
 - **ARAD-72:** homes on a radar that is transmitting. Fire it at a search site and it
   finds its own way there.
 
