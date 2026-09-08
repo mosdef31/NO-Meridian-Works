@@ -149,7 +149,7 @@ namespace MeridianWorks
         {
             if (enc.missiles == null) return null;
             foreach (MissileDefinition d in enc.missiles)
-                if (d != null && d.jsonKey == DonorMissileKey) return d;
+                if (d != null && d.jsonKey == DonorMissileKey && StockContent.IsStock(d)) return d;
             return null;
         }
 
@@ -158,11 +158,12 @@ namespace MeridianWorks
             if (enc.weaponMounts == null) return null;
 
             foreach (WeaponMount m in enc.weaponMounts)
-                if (m != null && m.jsonKey == key) return m;
+                if (m != null && m.jsonKey == key && StockContent.IsStock(m)) return m;
 
             foreach (WeaponMount m in enc.weaponMounts)
                 if (m != null && m.jsonKey != null && m.jsonKey.StartsWith(key)
-                    && m.jsonKey != DonorMountX12Key && m.jsonKey != DonorMountPrefix)
+                    && m.jsonKey != DonorMountX12Key && m.jsonKey != DonorMountPrefix
+                    && StockContent.IsStock(m))
                     return m;
 
             return null;
@@ -322,6 +323,7 @@ namespace MeridianWorks
             foreach (MissileDefinition d in enc.missiles)
             {
                 if (d == null || d.jsonKey == MissileKey) continue;
+                if (!StockContent.IsStock(d)) continue;
 
                 GameObject? p = AccessTools.Field(d.GetType(), "unitPrefab")?.GetValue(d)
                                 as GameObject;

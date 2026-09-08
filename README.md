@@ -151,7 +151,8 @@ weapons the game shipped with.
 - **Mounts wear your livery**, the way stock drop tanks and rocket pods do. The weapons
   themselves keep their own finish.
 - **An off-boresight ring** marks a target while a heat seeker can still be launched at
-  it, for wide shots where the usual cue sits in the middle of the screen.
+  it, for wide shots where the usual cue sits in the middle of the screen. It pulses red
+  when the shot is there and sits steady amber when it is not.
 - **A finished stock weapon is put back in your hands.** The PAB-125HD high drag bomb,
   described above, which the game shipped and left switched off.
 

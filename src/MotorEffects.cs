@@ -175,15 +175,17 @@ namespace MeridianWorks
 
         private readonly struct FlameLayer
         {
-            internal FlameLayer(string donor, float scale, string? obj = null)
+            internal FlameLayer(string donor, float scale, string? obj = null, float aft = 0f)
             {
-                Donor = donor; Scale = scale; Object = obj;
+                Donor = donor; Scale = scale; Object = obj; Aft = aft;
             }
 
             internal string Donor { get; }
             internal float Scale { get; }
 
             internal string? Object { get; }
+
+            internal float Aft { get; }
         }
 
         private readonly struct Recipe
@@ -220,13 +222,18 @@ namespace MeridianWorks
                 { "MeridianAAM41_Missile",
                     new Recipe("AAM-29", 0f,
                         new FlameLayer("AAM-29", 1f, "FireParticlesBooster")) },
+
+                { "MeridianAGM92_Missile",
+                    new Recipe("AGM-48", 0f,
+                        new FlameLayer("AAM-36 Scimitar", 0.4f, aft: 0.69f)) },
             };
 
         private readonly struct Trim
         {
-            internal Trim(float aft, float width = 1f, float glow = 1f, float blue = 0f)
+            internal Trim(float aft, float width = 1f, float glow = 1f, float blue = 0f,
+                          float smoke = 1f)
             {
-                Aft = aft; Width = width; Glow = glow; Blue = blue;
+                Aft = aft; Width = width; Glow = glow; Blue = blue; Smoke = smoke;
             }
 
             internal float Aft { get; }
@@ -236,6 +243,8 @@ namespace MeridianWorks
             internal float Glow { get; }
 
             internal float Blue { get; }
+
+            internal float Smoke { get; }
         }
 
         private static readonly Dictionary<string, Trim> Trims =
@@ -246,6 +255,9 @@ namespace MeridianWorks
 
                 { "MeridianARAD72_Missile/1", new Trim(0.20f) },
                 { "MeridianAAM63_Missile/1",  new Trim(0.20f) },
+
+                { "MeridianAGM92_Missile/0", new Trim(0.30f, smoke: 0.5f) },
+                { "MeridianAGM92_Missile/1", new Trim(0.99f, 0.4f) },
             };
 
         private static Trim TrimFor(string ourKey, int stage) =>
@@ -285,6 +297,27 @@ namespace MeridianWorks
                 }
 
                 if (!keep) t.gameObject.SetActive(false);
+            }
+        }
+
+        private static void NarrowSmoke(GameObject clone, float k)
+        {
+            foreach (Transform child in clone.transform)
+            {
+                bool smoke = false, flame = false;
+                foreach (Transform t in child.GetComponentsInChildren<Transform>(true))
+                {
+                    if (!t.gameObject.activeInHierarchy) continue;
+                    if (t.GetComponent<ParticleSystem>() == null &&
+                        t.GetComponent<TrailEmitter>() == null) continue;
+                    if (Mentions(t.name, SmokeWords)) smoke = true;
+                    if (Mentions(t.name, FlameWords)) flame = true;
+                }
+
+                if (flame && !smoke) continue;
+
+                child.localScale *= k;
+                child.localPosition *= k;
             }
         }
 
@@ -395,6 +428,7 @@ namespace MeridianWorks
             {
                 if (d == null || d.unitPrefab == null) continue;
                 if (PluginInfo.IsOurMissileKey(d.jsonKey)) continue;
+                if (!StockContent.IsStock(d)) continue;
 
                 var m = d.unitPrefab.GetComponent<Missile>();
                 if (m == null) continue;
@@ -449,6 +483,9 @@ namespace MeridianWorks
                     clone.transform.localPosition += new Vector3(0f, 0f, -trim.Aft);
 
                 clone.SetActive(true);
+
+                if (Mathf.Abs(trim.Smoke - 1f) > 0.0001f)
+                    NarrowSmoke(clone, trim.Smoke);
 
                 if (trim.Glow < 0.999f) DimLights(clone, trim.Glow);
                 if (trim.Blue > 0.0001f) BlueShift(clone, trim.Blue);
@@ -511,7 +548,23 @@ namespace MeridianWorks
 
                     fc.transform.localScale = Vector3.one * flameScale;
                     SeatBorrowed(fc, fd.Value, nozzle, splay, flameScale, ours);
+
+                    float flameAft = trim.Aft + layer.Aft;
+                    if (Mathf.Abs(flameAft) > 0.0001f)
+                        fc.transform.localPosition += new Vector3(0f, 0f, -flameAft);
+
                     NormalizeSimulationSpace(fc, fd.Value.Key);
+
+                    {
+                        Vector3 fSeat = ours.transform.InverseTransformPoint(fc.transform.position);
+                        Vector3 fNozzle = ours.transform.InverseTransformPoint(nozzle.position);
+                        Plugin.Diag(
+                            $"[Meridian] FLAME {ourKeyForLog} stage {stage} layer {f}: donor "
+                            + $"'{fd.Value.Key}' x{layer.Scale:0.##} aft {flameAft:0.##}m | n{i} nozzleLocal="
+                            + $"({fNozzle.x:0.00},{fNozzle.y:0.00},{fNozzle.z:0.00}) seat="
+                            + $"({fSeat.x:0.00},{fSeat.y:0.00},{fSeat.z:0.00}) "
+                            + $"which is {fNozzle.z - fSeat.z:0.00} m aft of the nozzle.");
+                    }
 
                     var flameParticles = fc.GetComponentsInChildren<ParticleSystem>(true)
                         .Where(x => x.gameObject.activeInHierarchy).ToList();

@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.0.2
+
+Multiplayer works again, and the off-boresight ring reads the right way round.
+
+- Joining a server works. With this pack installed the host flew fine and nobody else
+  could join: the faction menu never initialised and the map came up empty. Every
+  networked part of the pack was being given an identity worked out fresh on each
+  machine, so a host and a client disagreed about what was what and the client never
+  finished loading the mission. Identities now come from the part itself, so both sides
+  reach the same answer with nothing negotiated. Everyone on the server needs 1.0.2.
+- The off-boresight ring is steady amber when you cannot take the shot and pulses red
+  when you can. It used to sit steady green for no shot, which is the colour the rest of
+  the HUD uses to mean everything is fine.
+- The 3x and 2x Falchion racks stand on the same pylon the single mount uses, which lifts
+  the fitting clear of the wing. The triple was cutting into the FS-41 Eclipse's flaps.
+- The AGM-92 burns for three and a half minutes instead of two and a half and tops out
+  near Mach 0.97 instead of 0.88. Its listed range goes from 75 to 90 km to match.
+- The stock PAB-125HD high drag bomb is available again.
+- The AGM-92's exhaust fire sits ten centimetres further forward on both stages, so it
+  stays put across the stage change.
+- A bomb fuse change made after 1.0.1 has been taken back out. Bombs behave as they did
+  in 1.0.0 and 1.0.1.
+
 ## 1.0.1
 
 Bomb fixes. Nothing was added.

@@ -208,6 +208,7 @@ namespace MeridianWorks
             {
                 if (m == null || m.prefab == null) continue;
                 if (PluginInfo.IsOurMountKey(m.jsonKey)) continue;
+                if (!StockContent.IsStock(m)) continue;
 
                 var rounds = m.prefab.GetComponentsInChildren<MountedMissile>(true);
                 if (rounds.Length < 2) continue;

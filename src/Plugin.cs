@@ -82,6 +82,8 @@ namespace MeridianWorks
 
                 if (EncyclopediaRegistration.ResolvedMounts.Count == 0) return;
 
+                NetworkHash.RunOnce();
+
                 WarheadEffects.RunOnce();
                 NameGate.RunOnce();
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -37,6 +38,8 @@ namespace MeridianWorks
         private static AssetBundle? _ourBundle;
 
         private static int _resolveAttempts;
+
+        private static bool _resolveFailureLogged;
         private static bool _addedLogged;
 
         internal static IList<WeaponMount> ResolvedMounts => _mounts;
@@ -56,6 +59,12 @@ namespace MeridianWorks
             foreach (WeaponMount m in _extraMounts) yield return m;
         }
 
+        internal static IEnumerable<MissileDefinition> AllOurMissiles()
+        {
+            foreach (MissileDefinition d in _defs) yield return d;
+            foreach (MissileDefinition d in _extraDefs) yield return d;
+        }
+
         internal static void EnsureInLists(Encyclopedia enc)
         {
             if (enc == null) return;
@@ -64,6 +73,8 @@ namespace MeridianWorks
             TurnRateCompat.Apply(_defs);
 
             StatOverrides.ApplyIfPresent(_defs);
+
+            ShaderRebind.Apply(_defs, _mounts);
 
             bool added = false;
 
@@ -135,6 +146,99 @@ namespace MeridianWorks
                 ". AfterLoad's rebuild will index them.");
         }
 
+        private static bool _forcedRebuildThrew;
+
+        private static bool _handIndexReported;
+
+        private static string Blame(Exception ex)
+        {
+            try
+            {
+                StackFrame[] frames = new StackTrace(ex, false).GetFrames() ?? new StackFrame[0];
+                foreach (StackFrame frame in frames)
+                {
+                    Type? owner = frame.GetMethod()?.DeclaringType;
+                    if (owner == null) continue;
+                    if (owner.Namespace != null && owner.Namespace.StartsWith("MeridianWorks")) continue;
+                    return owner.FullName + " (" + owner.Assembly.GetName().Name + ")";
+                }
+            }
+            catch
+            {
+
+            }
+
+            return "the stack does not say which assembly";
+        }
+
+        private static void AppendToIndexLookup(Encyclopedia enc, INetworkDefinition def)
+        {
+            if (enc == null || enc.IndexLookup == null || def == null) return;
+
+            int at = enc.IndexLookup.IndexOf(def);
+            if (at < 0)
+            {
+                at = enc.IndexLookup.Count;
+                enc.IndexLookup.Add(def);
+            }
+            def.LookupIndex = at;
+        }
+
+        private static void IndexOurContentByHand(Encyclopedia enc)
+        {
+            int mounts = 0, defs = 0;
+
+            try
+            {
+                foreach (WeaponMount mount in AllOurMounts())
+                {
+                    if (mount == null || string.IsNullOrEmpty(mount.jsonKey)) continue;
+
+                    try { mount.Initialize(); } catch { }
+
+                    if (Encyclopedia.WeaponLookup == null) continue;
+                    Encyclopedia.WeaponLookup[mount.jsonKey] = mount;
+
+                    AppendToIndexLookup(enc, mount);
+                    mounts++;
+                }
+
+                foreach (MissileDefinition def in AllOurMissiles())
+                {
+                    if (def == null || string.IsNullOrEmpty(def.jsonKey)) continue;
+
+                    try { def.CacheMass(); } catch { }
+
+                    if (Encyclopedia.Lookup != null)
+                        Encyclopedia.Lookup[def.jsonKey] = def;
+
+                    AppendToIndexLookup(enc, def);
+
+                    defs++;
+                }
+            }
+            catch (Exception ex)
+            {
+                Plugin.Log.LogError("[Meridian] Indexing our content by hand failed: " + ex.Message);
+                return;
+            }
+
+            if (mounts == 0 && defs == 0) return;
+
+            if (_handIndexReported)
+            {
+                Plugin.Diag("[Meridian] Indexed " + mounts + " mount(s) and " + defs
+                            + " missile definition(s) by hand again.");
+                return;
+            }
+
+            _handIndexReported = true;
+            Plugin.Log.LogWarning(
+                "[Meridian] Indexed " + mounts + " mount(s) and " + defs + " missile definition(s) by hand "
+                + "after the forced rebuild was abandoned. The pack should work; network index positions are "
+                + "appended rather than rebuilt, so in multiplayer remove the conflicting mod instead.");
+        }
+
         internal static bool EnsureRegisteredAndRebuild()
         {
             Encyclopedia? enc = GameData.EncyclopediaOrNull();
@@ -156,12 +260,41 @@ namespace MeridianWorks
             {
                 MethodInfo? afterLoad =
                     AccessTools.Method(typeof(Encyclopedia), "AfterLoad", Type.EmptyTypes);
+
+                if (_forcedRebuildThrew) afterLoad = null;
+
+                if (!AllOurMounts().Any(m => m != null)) afterLoad = null;
+
                 if (afterLoad != null)
                 {
-                    afterLoad.Invoke(enc, null);
-                    Plugin.Diag("[Meridian] Forced Encyclopedia.AfterLoad() to index late registration.");
+
+                    try
+                    {
+                        afterLoad.Invoke(enc, null);
+                        Plugin.Diag("[Meridian] Forced Encyclopedia.AfterLoad() to index late registration.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Exception inner = ex is TargetInvocationException tie && tie.InnerException != null
+                            ? tie.InnerException
+                            : ex;
+
+                        Plugin.Log.LogWarning(
+                            "[Meridian] Encyclopedia.AfterLoad() threw while we were forcing a rebuild, and "
+                            + "it was not our code: " + Blame(inner) + ". That abandons the game's own lookup "
+                            + "rebuild, so this pack's weapons are indexed by hand instead. The exception was: "
+                            + inner.Message);
+
+                        _forcedRebuildThrew = true;
+                        IndexOurContentByHand(enc);
+                    }
                 }
-                else
+                else if (_forcedRebuildThrew)
+                {
+
+                    IndexOurContentByHand(enc);
+                }
+                else if (AllOurMounts().Any(m => m != null))
                 {
                     Plugin.Log.LogWarning("[Meridian] Could not find Encyclopedia.AfterLoad() to force a rebuild.");
                 }
@@ -176,11 +309,21 @@ namespace MeridianWorks
                 if (!present)
                     Plugin.Log.LogError($"[Meridian] WeaponLookup does NOT contain '{mount.jsonKey}'.");
                 ok &= present;
+
+                int? at = ((INetworkDefinition)mount).LookupIndex;
+                bool indexed = at.HasValue &&
+                               enc != null && enc.IndexLookup != null &&
+                               at.Value >= 0 && at.Value < enc.IndexLookup.Count &&
+                               ReferenceEquals(enc.IndexLookup[at.Value], mount);
+                if (!indexed)
+                    Plugin.Log.LogError($"[Meridian] '{mount.jsonKey}' has no usable LookupIndex, so any "
+                                        + "aircraft carrying it will fail to spawn.");
+                ok &= indexed;
             }
 
             if (ok)
                 Plugin.Diag($"[Meridian] All {_mounts.Count + _extraMounts.Count} mount(s) are in "
-                            + "WeaponLookup.");
+                            + "WeaponLookup and carry a LookupIndex that resolves back to them.");
             return ok;
         }
 
@@ -199,6 +342,17 @@ namespace MeridianWorks
             _resolveAttempts++;
 
             _ourBundle = FindOurLoadedBundle();
+
+            if (_ourBundle == null && _resolveAttempts >= 3)
+            {
+                _ourBundle = TryLoadBundleFromDisk();
+                if (_ourBundle != null)
+                    Plugin.Log.LogWarning(
+                        "[Meridian] Blueprinter never made our bundle resident, so it was loaded "
+                        + "from disk as a last resort. Check that Blueprinter is installed and "
+                        + "up to date - this path is not the supported one.");
+            }
+
             if (_ourBundle != null)
             {
                 _mounts.AddRange(LoadOurs<WeaponMount>(_ourBundle, PluginInfo.MountAssetFragment));
@@ -208,11 +362,14 @@ namespace MeridianWorks
             if (_mounts.Count == 0)
             {
 
-                if (_resolveAttempts < 3) return false;
+                if (_resolveAttempts < 3 || _resolveFailureLogged) return false;
+                _resolveFailureLogged = true;
 
                 Plugin.Log.LogError(
                 "[Meridian] Could not resolve a single WeaponMount from any loaded bundle or from "
-                + $"disk.");
+                + "disk, so this pack is INERT this session. On a multiplayer client that also "
+                + "means you cannot join a host who has it working: the host's mission carries "
+                + "our weapons and this game has no definitions to match them to.");
                 DumpLoadedBundleNames();
                 return false;
             }

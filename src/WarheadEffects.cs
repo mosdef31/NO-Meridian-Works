@@ -170,6 +170,7 @@ namespace MeridianWorks
             {
                 if (d == null || d.unitPrefab == null) continue;
                 if (PluginInfo.IsOurMissileKey(d.jsonKey)) continue;
+                if (!StockContent.IsStock(d)) continue;
 
                 var m = d.unitPrefab.GetComponent<Missile>();
                 if (m == null) continue;

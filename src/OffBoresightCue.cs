@@ -167,6 +167,10 @@ namespace MeridianWorks
             return ir;
         }
 
+        private const float BlinkHz = 2.5f;
+
+        private const float BlinkMinAlpha = 0.45f;
+
         internal static float OffBoresightDegrees(Aircraft aircraft, Unit target)
         {
             if (aircraft == null || target == null) return 0f;
@@ -182,9 +186,16 @@ namespace MeridianWorks
             if (_image == null) return;
 
             ColorTheme theme = ThemeManager.Active.ColorTheme;
-            Color c = canFire ? theme.Alert : theme.AllClear;
+            Color c = canFire ? theme.Alert : theme.Warning;
 
-            _image.color = new Color(c.r, c.g, c.b, 0.85f);
+            float alpha = 0.85f;
+            if (canFire)
+            {
+                float phase = Mathf.Sin(Time.unscaledTime * BlinkHz * 2f * Mathf.PI) * 0.5f + 0.5f;
+                alpha = Mathf.Lerp(BlinkMinAlpha, 1f, phase);
+            }
+
+            _image.color = new Color(c.r, c.g, c.b, alpha);
 
             if (_cam == null) _cam = Camera.main;
             if (_cam == null || target == null) { _image.enabled = false; return; }

@@ -16,6 +16,9 @@ namespace MeridianWorks
 
         private static readonly HashSet<int> _announced = new HashSet<int>();
 
+        private static readonly System.Reflection.FieldInfo? FImpactFuse =
+            AccessTools.Field(typeof(Missile), "impactFuse");
+
         [HarmonyPrefix]
         private static void Prefix(Missile __instance)
         {
@@ -40,6 +43,31 @@ namespace MeridianWorks
                 }
 
                 Rigidbody? other = hit.collider != null ? hit.collider.attachedRigidbody : null;
+
+                if (_announced.Add(id))
+                {
+                    string what = hit.collider != null ? hit.collider.name : "something unnamed";
+                    float closing = other == null
+                        ? m.rb.velocity.magnitude
+                        : (other.velocity - m.rb.velocity).magnitude;
+                    bool live = FImpactFuse?.GetValue(m) is bool f && f;
+
+                    Plugin.Log.LogInfo(
+                        $"[Meridian] CONTACT {def.jsonKey}: touched '{what}' at "
+                        + $"{m.rb.velocity.magnitude:0} m/s, closing {closing:0} m/s, "
+                        + $"armed={m.IsArmed()} impactFuse={live}, "
+                        + $"other={(other == null ? "no rigidbody" : (other.isKinematic ? "kinematic" : "dynamic"))}. "
+                        + (other != null && !other.isKinematic && closing <= RelativeSpeedWindow
+                            ? "INSIDE the engine's window, so it declined to fuse - this is the walk, "
+                              + "and nothing in this pack answers it. ContactFuse did, and was removed "
+                              + "on 2026-09-08 for making the AGM-92 worse."
+                            : !m.IsArmed()
+                                ? "NOT ARMED, so the engine zeroes the round's velocity and leaves it on the "
+                                  + "surface without fusing. That is a stop, not a walk, and nothing in this "
+                                  + "pack currently answers it."
+                                : "Outside the engine's window and armed, so this contact should have fused."));
+                }
+
                 if (other == null || other.isKinematic)
                 {
                     Leaving(id);
@@ -57,7 +85,7 @@ namespace MeridianWorks
                 _walking.TryGetValue(id, out int steps);
                 _walking[id] = steps + 1;
 
-                if (_announced.Add(id))
+                if (steps == 0)
                 {
                     string what = hit.collider != null ? hit.collider.name : "something unnamed";
                     Plugin.Log.LogInfo(
