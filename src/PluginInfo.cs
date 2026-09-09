@@ -92,7 +92,7 @@ namespace MeridianWorks
                                  "internalx4", "internalx6", "internalx6_flat", "internalx18",
                                  "internalx18_tight" }, 0.189f),
 
-            new Weapon("Screamer",    "MeridianScreamer",  "Screamer",    new[] { "single" }, 0.054f),
+            new Weapon("Screamer",    "MeridianScreamer",  "Screamer",    new[] { "single" }, 0.0999f),
 
             new Weapon("AIM-120C",    "MeridianAMRAAM",    "AIM-120C",    new[] {
                                  "single", "internal", "internalx2", "internalx3",

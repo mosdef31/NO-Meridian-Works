@@ -32,6 +32,9 @@ costs the aircraft something to carry.
   had never once run: it was looking for a flag no aircraft in this game sets.
 - The Exocet sits rotated a quarter turn on its pylon, so its fin is beside the rack
   rather than through it.
+- The Screamer hangs on its pylon where it should. Its pylon was built around a radius
+  measured before the round was resized, so it was seating a body half the width of the
+  one it carries.
 
 ## 1.0.2
 
