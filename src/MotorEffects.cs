@@ -23,6 +23,18 @@ namespace MeridianWorks
         private static readonly HashSet<string> _appliedLogged = new HashSet<string>();
         private static readonly HashSet<string> _seatingLogged = new HashSet<string>();
 
+        private static readonly HashSet<string> StagedPlumes = new HashSet<string>
+        {
+
+            "MeridianAAM41_Missile",
+            "MeridianAAM63_Missile",
+            "MeridianARAD72_Missile",
+            "MeridianAGM92_Missile",
+
+            "MeridianExocetAir_Missile",
+
+        };
+
         internal static void Apply(Missile ours)
         {
             if (ours == null) return;
@@ -78,6 +90,23 @@ namespace MeridianWorks
                 if (later == null || MotorHasEffects(later)) continue;
 
                 float wantBurn = MotorBurn(later);
+
+                if (!StagedPlumes.Contains(ourKey))
+                {
+
+                    var contContainer = new GameObject(ContainerName + "_stage" + stage);
+                    contContainer.transform.SetParent(ours.transform, false);
+
+                    CloneOntoNozzles(ours, later, pick.Value, recipe,
+                                     nozzles, contContainer.transform, 0, stage);
+
+                    Plugin.Diag(
+                        $"[Meridian] {ourKey}: stage {stage} is a CONTINUATION, not a "
+                        + $"separate motor, so it keeps stage 0's donor '{pick.Value.Key}' "
+                        + "instead of borrowing a second one. See StagedPlumes.");
+                    continue;
+                }
+
                 Donor? stagePick = ChooseStageDonor(ourKey, stage, wantBurn);
                 if (stagePick == null)
                 {
@@ -258,6 +287,13 @@ namespace MeridianWorks
 
                 { "MeridianAGM92_Missile/0", new Trim(0.30f, smoke: 0.5f) },
                 { "MeridianAGM92_Missile/1", new Trim(0.99f, 0.4f) },
+
+                { "MeridianScreamer_Missile/0", new Trim(0.28f) },
+                { "MeridianScreamer_Missile/1", new Trim(0.28f) },
+                { "MeridianAMRAAM_Missile/0",   new Trim(0.27f) },
+                { "MeridianAMRAAM_Missile/1",   new Trim(0.27f) },
+                { "MeridianExocetAir_Missile/0", new Trim(0.36f) },
+                { "MeridianExocetAir_Missile/1", new Trim(0.24f) },
             };
 
         private static Trim TrimFor(string ourKey, int stage) =>

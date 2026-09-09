@@ -30,6 +30,7 @@ Anticipate more additions as the pack grows.
 | AGM-33L Hornet | Laser | 12 km | 240 | 130 | 300 kg | $300k | Medium CAS |
 | AGM-92 | Optical, datalink | 90 km | 700 | 620 | 1100 kg | $2.6m | Long range finisher |
 | ARAD-72 | Radar homing | 70 km | 0 | 90 | 600 kg | $1.15m | SEAD |
+| Exocet AM39 | Programmed sea skim | 70 km | 2600 | 300 | 670 kg | $2.0m | Anti ship |
 
 - **AGM-84 Warhawk:** locked on before release and needs nothing from you afterwards. A
   datalink keeps the aimpoint fresh, so you can shoot from further out than you can
@@ -44,6 +45,10 @@ Anticipate more additions as the pack grows.
   on a wing.
 - **ARAD-72:** homes on a radar that is transmitting. Fire it at a search site and it
   finds its own way there.
+- **Exocet AM39:** an anti ship missile that runs five metres above the water the whole
+  way in. It flies a programmed profile rather than one you steer, so you can leave the
+  moment it is off the rail, and it climbs over a headland rather than into it. Against
+  a ship it is the heaviest single blow in the pack.
 
 The laser rounds need the target lit until impact. That is the trade.
 
@@ -68,6 +73,8 @@ The laser rounds need the target lit until impact. That is the trade.
 | AAM-63 Falchion | Active radar | 60 km | 22 | 190 kg | $1.6m | Workhorse BVR |
 | IRM-L7 | Heat | 25 km | 40 | 245 kg | $1.5m | Ambush tactics |
 | SRM-8 Kukri | Heat | 6.5 km | 7 | 55 kg | $420k | Merge and dog fighting |
+| Screamer | Active radar | 50 km | 16 | 110 kg | $1.45m | Hypersonic BVR |
+| AIM-120C | Active radar | 35 km | 18 | 155 kg | $950k | Cheap mass BVR |
 | AGR-40 Hairpin | Infrared | 6 km | 20 | 20 kg | $50k | Cheap close defense and anti saturation |
 
 - **AAM-41 Gram:** the long one. Its own radar takes over at the end, so you can turn
@@ -75,6 +82,13 @@ The laser rounds need the target lit until impact. That is the trade.
 - **AAM-63 Falchion:** shorter and cheaper than the Gram, and quicker off the rail.
 - **IRM-L7:** a heat seeker with a long burn, for shots further out than a dogfight.
 - **SRM-8 Kukri:** small, light and made for close in. Carry a lot of them.
+- **Screamer:** the fast one. A small warhead on a very large motor, uncapped, so it
+  arrives before a large aircraft has time to turn beam on. It costs nearly as much as
+  the Gram and reaches half as far; what you are buying is the time the target does not
+  get.
+- **AIM-120C:** the cheap one. It flies as well as anything in its class and its radar
+  is the weak part: a target that descends into clutter or turns beam on will break the
+  lock outright rather than merely pull the round off its aim. Carry several.
 - **AGR-40 Hairpin:** an infrared kinetic interceptor, four or twelve to a pod. A heat
   seeking guidance section screwed into an ordinary rocket, for incoming munitions and
   light aircraft at close range. The blast is small and it is not the point: what kills
@@ -116,6 +130,9 @@ you fly.
 | AAM-63 Falchion | single, twin | single, twin, four-round, six-round |
 | IRM-L7 | single, twin | none |
 | SRM-8 Kukri | single, twin | none |
+| Screamer | single | none |
+| AIM-120C | single | single, twin, three-round, eight-round |
+| Exocet AM39 | single | none |
 | AGR-40 Hairpin | four-round pod, twelve-round pod | none |
 | PAB-125HD | triple | none |
 

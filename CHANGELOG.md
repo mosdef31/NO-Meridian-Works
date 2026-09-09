@@ -1,5 +1,38 @@
 # Changelog
 
+## 1.1.0
+
+Three new weapons, and the first flight of them fixed a lot. Every store in the pack now
+costs the aircraft something to carry.
+
+- Three rounds are added: the **Screamer**, a hypersonic radar guided air to air missile;
+  the **AIM-120C**, a cheap medium range one; and the **Exocet AM39**, an anti ship
+  missile that runs five metres above the water the whole way in.
+- The Exocet had a third of the wing area it needed. It held altitude by pointing its
+  nose up and pivoted on the spot instead of turning. It now carries the area the base
+  game's own AShM-300 carries, scaled to its weight, and its cruise drag and radar
+  signature come down with it.
+- The Screamer has a proximity fuse. It was going past the target by a few metres with
+  only a contact fuse, and at that speed a few metres is two thousandths of a second. Its
+  warhead is rebalanced for a burst rather than an impact, and its bare metal is back on
+  the nose and the intake.
+- The AIM-120C takes the AAM-63 Falchion's full set of internal fittings and goes
+  everywhere the Falchion goes. It is also no longer the cheapest round per kilometre of
+  range in the pack, and no longer out-turns the base game's own medium range missiles.
+- Every external mount now carries radar signature, drag and rack weight. Eleven of the
+  fourteen rounds hung on a pylon with none of the three. Internal bay mounts stay free,
+  which is what the base game does with its own.
+- The revived PAB-125HD comes off internal bay stations. Its only fitting is an external
+  triple rack, and an external rack inside a bay was charging the aircraft a signature a
+  bay mount never charges.
+- A round with a boost and a sustain draws one flame instead of two. The pack had been
+  drawing one rocket as two engines lighting in sequence. All three new rounds also have
+  their exhaust at the tail instead of part way up the body.
+- Wing stores move forward off the control surface behind them. The rule that does this
+  had never once run: it was looking for a flag no aircraft in this game sets.
+- The Exocet sits rotated a quarter turn on its pylon, so its fin is beside the rack
+  rather than through it.
+
 ## 1.0.2
 
 Multiplayer works again, and the off-boresight ring reads the right way round.

@@ -10,7 +10,7 @@ namespace MeridianWorks
         internal const string GUID = "com.meridianworks";
         internal const string Name = "Meridian Works";
 
-        internal const string Version = "1.0.2.0";
+        internal const string Version = "1.1.0.0";
 
         internal const string BlueprinterGUID = "com.nikkorap.blueprinter";
 
@@ -89,7 +89,16 @@ namespace MeridianWorks
             new Weapon("AGM-92",          "MeridianAGM92",  "AGM-92",          new[] { "single", "internal" }, 0.234f),
             new Weapon("GBP-500 Bodkin",  "MeridianGBP500", "GBP-500 Bodkin",  new[] {
                                  "single", "internal", "x2", "internalx2",
-                                 "internalx4", "internalx6", "internalx6_flat", "internalx18" }, 0.189f),
+                                 "internalx4", "internalx6", "internalx6_flat", "internalx18",
+                                 "internalx18_tight" }, 0.189f),
+
+            new Weapon("Screamer",    "MeridianScreamer",  "Screamer",    new[] { "single" }, 0.054f),
+
+            new Weapon("AIM-120C",    "MeridianAMRAAM",    "AIM-120C",    new[] {
+                                 "single", "internal", "internalx2", "internalx3",
+                                 "internalx4", "internalx6", "internalx8" }, 0.080f),
+
+            new Weapon("Exocet AM39", "MeridianExocetAir", "Exocet AM39", new[] { "single" }, 0.189f),
         };
 
         internal static readonly string[] ArchivedMountKeys =
@@ -113,6 +122,8 @@ namespace MeridianWorks
             "MeridianGBO900_internalx2",
             "MeridianGBP500_internalx4",
             "MeridianGBP500_x2",
+            "MeridianAMRAAM_internalx4",
+            "MeridianAMRAAM_internalx6",
         };
 
         internal static readonly string[] UnderStubMountKeys =
@@ -186,6 +197,10 @@ namespace MeridianWorks
             { "MeridianGBO900_Missile", 15f },
             { "MeridianAGM92_Missile", 15f },
             { "MeridianGBP500_Missile", 12f },
+
+            { "MeridianScreamer_Missile", 160f },
+            { "MeridianAMRAAM_Missile", 150f },
+            { "MeridianExocetAir_Missile", 60f },
         };
 
         internal static int ExpectedMountCount

@@ -467,8 +467,7 @@ namespace MeridianWorks
             {
                 if (cs == null) continue;
                 surfacesSeen++;
-                if (!IsFlap(cs)) continue;
-                flapsSeen++;
+                if (IsFlap(cs)) flapsSeen++;
 
                 GameObject? mesh = FlapMesh(cs);
                 var flapRenderers = new List<Renderer>(
@@ -494,9 +493,9 @@ namespace MeridianWorks
                 if (_logged.Add(Where(hardpoint) + "|" + mount.jsonKey + "|noflap"))
                     Plugin.Diag(
                         $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: {surfacesSeen} control "
-                        + $"surface(s) found under '{air.name}' {route}, {flapsSeen} of them flaps, and "
-                        + "none overlaps this mount across the span while sitting behind it, so nothing "
-                        + "was moved forward.");
+                        + $"surface(s) found under '{air.name}' {route}, {flapsSeen} of them flagged "
+                        + "flaps, and none overlaps this mount across the span while sitting behind "
+                        + "it, so nothing was moved forward.");
                 return;
             }
 
@@ -505,10 +504,23 @@ namespace MeridianWorks
             {
                 if (_logged.Add(Where(hardpoint) + "|" + mount.jsonKey + "|flap"))
                     Plugin.Log.LogWarning(
-                        $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: flap '{which}' overlaps this "
+                        $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: surface '{which}' overlaps this "
                         + $"mount by {worst:0.000} m, more than the mount's own {mountLength:0.000} m "
-                        + "length. That is not a flap sitting behind a pylon, so NOTHING was moved - "
+                        + "length. That is not a surface sitting behind a pylon, so NOTHING was moved - "
                         + "find out what that surface actually is before trusting the number.");
+                return;
+            }
+
+            float ceiling = -ours.min.z;
+            if (worst + 0.06f > ceiling)
+            {
+                if (_logged.Add(Where(hardpoint) + "|" + mount.jsonKey + "|flap"))
+                    Plugin.Log.LogWarning(
+                        $"[Meridian] CLEARANCE {Where(hardpoint)} {mount.jsonKey}: surface '{which}' "
+                        + $"needs this mount {worst + 0.06f:0.000} m forward, but the hardpoint sits "
+                        + $"{ceiling:0.000} m from its aft end, so that much would leave the rack "
+                        + "hanging off the front of its own pylon. NOTHING was moved and this round "
+                        + "still clips here. Remove this cell from loadout-table.md.");
                 return;
             }
 
@@ -518,7 +530,7 @@ namespace MeridianWorks
             if (!_logged.Add(Where(hardpoint) + "|" + mount.jsonKey + "|flap")) return;
 
             Plugin.Diag(
-                $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: flap '{which}' reached "
+                $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: surface '{which}' reached "
                 + $"z={ours.min.z + worst:0.000} against this mount's aft end at z={ours.min.z:0.000}, "
                 + $"so the whole mount moved FORWARD {shift:0.000} m to clear it.");
         }
