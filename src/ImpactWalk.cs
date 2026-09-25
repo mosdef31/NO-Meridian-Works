@@ -44,6 +44,18 @@ namespace MeridianWorks
 
                 Rigidbody? other = hit.collider != null ? hit.collider.attachedRigidbody : null;
 
+                bool fuseLive = FImpactFuse?.GetValue(m) is bool ff && ff;
+                if (!fuseLive && m.rb.velocity.magnitude > 10f)
+                {
+                    Plugin.Log.LogInfo(
+                        $"[Meridian] REFLECT {def.jsonKey}: contacting at "
+                        + $"{m.rb.velocity.magnitude:0} m/s with impactFuse ALREADY FALSE. "
+                        + "Missile.DetectCollisions is about to run "
+                        + "Vector3.Reflect(velocity, normal) * 0.25f on it. THIS IS A LITERAL "
+                        + "BOUNCE, not a walk. The flag is a one-way latch cleared by "
+                        + "PenetrateObject or ImpactDelayedFuse and never restored.");
+                }
+
                 if (_announced.Add(id))
                 {
                     string what = hit.collider != null ? hit.collider.name : "something unnamed";

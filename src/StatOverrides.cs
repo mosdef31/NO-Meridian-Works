@@ -23,6 +23,8 @@ namespace MeridianWorks
             "uprightPreference",
 
             "guidanceDelay", "loftAmount",
+
+            "gLimit",
         };
 
         internal static void ApplyIfPresent(IEnumerable<MissileDefinition> definitions)

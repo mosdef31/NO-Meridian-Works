@@ -2,39 +2,85 @@
 
 ## 1.1.0
 
-Three new weapons, and the first flight of them fixed a lot. Every store in the pack now
-costs the aircraft something to carry.
+**Seven new rounds, new aircraft to carry them, real motor effects, and stores that cost
+the aircraft something to carry.** Everything below is what changed since 1.0.2.
 
-- Three rounds are added: the **Screamer**, a hypersonic radar guided air to air missile;
-  the **AIM-120C**, a cheap medium range one; and the **Exocet AM39**, an anti ship
-  missile that runs five metres above the water the whole way in.
-- The Exocet had a third of the wing area it needed. It held altitude by pointing its
-  nose up and pivoted on the spot instead of turning. It now carries the area the base
-  game's own AShM-300 carries, scaled to its weight, and its cruise drag and radar
-  signature come down with it.
-- The Screamer has a proximity fuse. It was going past the target by a few metres with
-  only a contact fuse, and at that speed a few metres is two thousandths of a second. Its
-  warhead is rebalanced for a burst rather than an impact, and its bare metal is back on
-  the nose and the intake.
-- The AIM-120C takes the AAM-63 Falchion's full set of internal fittings and goes
-  everywhere the Falchion goes. It is also no longer the cheapest round per kilometre of
-  range in the pack, and no longer out-turns the base game's own medium range missiles.
-- Every external mount now carries radar signature, drag and rack weight. Eleven of the
-  fourteen rounds hung on a pylon with none of the three. Internal bay mounts stay free,
-  which is what the base game does with its own.
-- The revived PAB-125HD comes off internal bay stations. Its only fitting is an external
-  triple rack, and an external rack inside a bay was charging the aircraft a signature a
-  bay mount never charges.
-- A round with a boost and a sustain draws one flame instead of two. The pack had been
-  drawing one rocket as two engines lighting in sequence. All three new rounds also have
-  their exhaust at the tail instead of part way up the body.
-- Wing stores move forward off the control surface behind them. The rule that does this
-  had never once run: it was looking for a flag no aircraft in this game sets.
-- The Exocet sits rotated a quarter turn on its pylon, so its fin is beside the rack
-  rather than through it.
-- The Screamer hangs on its pylon where it should. Its pylon was built around a radius
-  measured before the round was resized, so it was seating a body half the width of the
-  one it carries.
+### New rounds
+
+- **AGM-190A Black Arrow.** A small, cheap subsonic cruise missile carried in large
+  numbers: 250 km, flies low on a small jet, then climbs to pick out its target and dives
+  on it. Its wing and fins are folded on the rack and open after release. It hangs singly,
+  in side-by-side pairs, on a four-round rack, and in weapon bays in blocks sized to each
+  bay, up to eighteen at a time on the largest.
+- **AGM-102 Kalibr.** A long-range subsonic cruise missile, 300 km, that flies a waypoint
+  route low and slow and then climbs and dives on its target. Folded on the rail, open
+  after release.
+- **AGM-102E Kalibr.** The electronic-warfare Kalibr. It cruises silent, then jams one
+  radar once it closes within 30 km: its own target, or, if another round already has
+  that one, the nearest free radar in the lane ahead. Several fired together jam several
+  radars. Its warhead is cut to a fifth. Fire it at the head of a salvo.
+- **AShM-500 Yashma.** A heavy ramjet anti-ship missile that flies its final approach at
+  Mach 2.5, five metres above the water.
+- **AShM-140 Exocet.** An air-launched anti-ship missile that skims three metres above
+  the water for its whole approach and flies a programmed route, so the launching
+  aircraft can turn away at once.
+- **AAM-90 Estoc.** A hypersonic long-range radar-guided air-to-air missile with a
+  proximity fuse. It arrives too fast for a large aircraft to turn away.
+- **AAM-120C.** A cheap medium-range radar-guided air-to-air missile. It flies as well as
+  anything in its class; its radar is the weak part, and clutter or a beam-on target
+  breaks the lock outright. It fits every bay the AAM-63 Falchion fits.
+
+### Cruise missiles fly routes
+
+The cruise rounds follow a route of several waypoints drawn on the map, in order, rather
+than flying straight to the last one. A waypoint close to the launch point is reached
+rather than overflown.
+
+### Where the rounds go
+
+- New carriage on the Darkreach, the F-22E Strike Raptor, the FS-3, the FS-41 and the
+  AB-4's fore and aft bays.
+- The GBP-500 Bodkin gains a nine-round bay block.
+- More wing options for the Black Arrow on the A-19, the T/A-30 and the F-22E, and the
+  F-22E's wings now take the AAM-41, AAM-63 and AAM-120C singly or in pairs and triples.
+- The PAB-125HD is offered in every fitting and on every hardpoint the PAB-125 is, bays
+  included, instead of only as a triple on external pylons.
+
+### Stores cost something to carry
+
+Every external mount now adds radar signature, drag and weight to the aircraft carrying
+it, per round. Before this most of the pack hung on a pylon for free. Internal bay mounts
+add nothing, the same as the base game's own bay mounts.
+
+### Motors look and sound like motors
+
+- Every round draws its own flame, heat haze and smoke trail, shaped to its motor: solid
+  boosters, sustainers, ramjets and small turbojets each look different.
+- The smoke trail is one connected ribbon, the way the base game draws its own missiles.
+- A boost and sustain motor draws one continuous plume, not a flame that lights, cuts and
+  lights again.
+- Every motor has a sound.
+- Three new switches under **Effects** in the config file: the ribbon smoke trail, the
+  game's own heat haze, and a cleanup of unused borrowed effect parts. All on by default.
+
+### Handling and balance
+
+- Air-to-air rounds lead a turning target along its turn over the whole
+  flight instead of aiming where it is now.
+- The AAM-63 Falchion no longer circles and self-destructs after losing its lock.
+- The AAM-41 Gram turns less and costs more.
+- Wing stores are moved clear of the flaps behind them.
+
+### Smaller things
+
+- The incoming-missile mark on the HUD shows for every round in the pack.
+- Weapon descriptions rewritten in plain words.
+- The pack's models are lighter, about a quarter fewer triangles, with no change in shape.
+
+### Known issues
+
+- The PAB-125HD's CCIP pipper is inaccurate. The bomb does not always land where the
+  pipper shows.
 
 ## 1.0.2
 

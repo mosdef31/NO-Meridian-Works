@@ -82,8 +82,9 @@ namespace MeridianWorks
         {
             if (set == null || set.weaponOptions == null || had.info == null) return null;
 
-            WeaponMount? best = null;
-            float bestDistance = RoleDistance;
+            var options = new List<WeaponMount>();
+            var weights = new List<float>();
+            float total = 0f;
 
             foreach (WeaponMount option in set.weaponOptions)
             {
@@ -92,13 +93,29 @@ namespace MeridianWorks
                 if (!Legal(option, hq)) continue;
 
                 float d = RoleGap(had.info, option.info);
-                if (d >= bestDistance) continue;
+                if (d >= RoleDistance) continue;
 
-                bestDistance = d;
-                best = option;
+                float wgt = Preference(option.jsonKey) / (0.05f + d);
+                options.Add(option);
+                weights.Add(wgt);
+                total += wgt;
             }
 
-            return best;
+            if (options.Count == 0) return null;
+
+            float roll = UnityEngine.Random.value * total;
+            for (int i = 0; i < options.Count; i++)
+            {
+                roll -= weights[i];
+                if (roll <= 0f) return options[i];
+            }
+            return options[options.Count - 1];
+        }
+
+        private static float Preference(string? mountKey)
+        {
+            if (mountKey != null && mountKey.StartsWith("MeridianAAM63", StringComparison.Ordinal)) return 3f;
+            return 1f;
         }
 
         private static float RoleGap(WeaponInfo a, WeaponInfo b)

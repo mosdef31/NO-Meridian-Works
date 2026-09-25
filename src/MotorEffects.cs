@@ -12,6 +12,15 @@ namespace MeridianWorks
     {
         private const string ContainerName = "Meridian_BorrowedEffects";
 
+        private static void NeutralizeParentScale(Transform container)
+        {
+            Vector3 parentScale = container.parent != null ? container.parent.lossyScale : Vector3.one;
+            container.localScale = new Vector3(
+                Mathf.Abs(parentScale.x) > 0.0001f ? 1f / parentScale.x : 1f,
+                Mathf.Abs(parentScale.y) > 0.0001f ? 1f / parentScale.y : 1f,
+                Mathf.Abs(parentScale.z) > 0.0001f ? 1f / parentScale.z : 1f);
+        }
+
         private const float ReferenceNozzleRadius = 0.16f;
 
         private const float MinPlumeScale = 0.45f;
@@ -44,7 +53,16 @@ namespace MeridianWorks
             if (ours.transform.Find(ContainerName) != null) return;
 
             object? motor = motors.GetValue(0);
-            if (MotorHasEffects(motor)) return;
+            if (MotorHasEffects(motor))
+            {
+                BorrowAudioOnly(ours, motor, 0);
+
+                for (int i = 1; i < motors.Length; i++)
+                    BorrowAudioOnly(ours, motors.GetValue(i), i);
+                return;
+            }
+
+            _disabledRoles.Clear();
 
             List<Transform> nozzles = FindNozzles(ours);
             if (nozzles.Count == 0)
@@ -75,6 +93,7 @@ namespace MeridianWorks
 
             var container = new GameObject(ContainerName);
             container.transform.SetParent(ours.transform, false);
+            NeutralizeParentScale(container.transform);
             if (_fEffectsTransform?.GetValue(ours) as Transform == null)
                 _fEffectsTransform?.SetValue(ours, container.transform);
 
@@ -91,11 +110,38 @@ namespace MeridianWorks
 
                 float wantBurn = MotorBurn(later);
 
+                if (recipe.LaterPlume != null)
+                {
+                    Donor? named = ChooseDonor(ourKey, recipe.LaterPlume, "stage" + stage);
+                    if (named == null)
+                    {
+                        Plugin.Log.LogWarning(
+                            $"[Meridian] {ourKey}: stage {stage} asks for donor "
+                            + $"'{recipe.LaterPlume}' and no loaded weapon matches it, so "
+                            + "that stage burns invisibly. The donor is only present when "
+                            + "some aircraft in the mission carries it.");
+                        continue;
+                    }
+
+                    var namedContainer = new GameObject(ContainerName + "_stage" + stage);
+                    namedContainer.transform.SetParent(ours.transform, false);
+                    NeutralizeParentScale(namedContainer.transform);
+
+                    CloneOntoNozzles(ours, later, named.Value, recipe,
+                                     nozzles, namedContainer.transform, 0, stage);
+
+                    Plugin.Diag(
+                        $"[Meridian] {ourKey}: stage {stage} wears the NAMED donor "
+                        + $"'{named.Value.Key}' from the recipe, not a burn-time match.");
+                    continue;
+                }
+
                 if (!StagedPlumes.Contains(ourKey))
                 {
 
                     var contContainer = new GameObject(ContainerName + "_stage" + stage);
                     contContainer.transform.SetParent(ours.transform, false);
+                    NeutralizeParentScale(contContainer.transform);
 
                     CloneOntoNozzles(ours, later, pick.Value, recipe,
                                      nozzles, contContainer.transform, 0, stage);
@@ -118,9 +164,18 @@ namespace MeridianWorks
 
                 var stageContainer = new GameObject(ContainerName + "_stage" + stage);
                 stageContainer.transform.SetParent(ours.transform, false);
+                NeutralizeParentScale(stageContainer.transform);
 
                 CloneOntoNozzles(ours, later, stagePick.Value, recipe,
                                  nozzles, stageContainer.transform, 0, stage);
+            }
+
+            if (_disabledRoles.Count > 0 && PluginConfig.GhostSweep)
+            {
+                var sweep = ours.gameObject.AddComponent<GhostSweep>();
+                sweep.Doomed = _disabledRoles.ToArray();
+                sweep.Key = ourKey;
+                _disabledRoles.Clear();
             }
         }
 
@@ -182,7 +237,10 @@ namespace MeridianWorks
             foreach (Transform t in ours.GetComponentsInChildren<Transform>(true))
             {
                 if (!t.name.StartsWith("Exhaust", StringComparison.OrdinalIgnoreCase)) continue;
-                int index = int.TryParse(t.name.Substring("Exhaust".Length), out int n) ? n : 0;
+
+                string suffix = t.name.Substring("Exhaust".Length);
+                if (suffix.Length > 0 && !int.TryParse(suffix, out _)) continue;
+                int index = int.TryParse(suffix, out int n) ? n : 0;
                 found.Add((index, t));
             }
 
@@ -222,7 +280,19 @@ namespace MeridianWorks
             internal Recipe(string plume, float splayDegrees, params FlameLayer[] flames)
             {
                 Plume = plume; SplayDegrees = splayDegrees; Flames = flames;
+                LaterPlume = null; LaterFlames = null;
             }
+
+            internal Recipe(string plume, float splayDegrees, FlameLayer[] flames,
+                            string laterPlume, params FlameLayer[] laterFlames)
+            {
+                Plume = plume; SplayDegrees = splayDegrees; Flames = flames;
+                LaterPlume = laterPlume; LaterFlames = laterFlames;
+            }
+
+            internal string? LaterPlume { get; }
+
+            internal FlameLayer[]? LaterFlames { get; }
 
             internal string Plume { get; }
 
@@ -255,6 +325,24 @@ namespace MeridianWorks
                 { "MeridianAGM92_Missile",
                     new Recipe("AGM-48", 0f,
                         new FlameLayer("AAM-36 Scimitar", 0.4f, aft: 0.69f)) },
+
+                { "MeridianScreamer_Missile",
+                    new Recipe("AAM-29;MMR-S3", 0f,
+                        new FlameLayer("AAM-29", 1f, "FireParticlesBooster")) },
+
+                { "MeridianAMRAAM_Missile",
+                    new Recipe("AAM-29;MMR-S3", 0f,
+                        new FlameLayer("AAM-29", 0.8f, "FireParticlesBooster")) },
+
+                { "MeridianExocetAir_Missile",
+                    new Recipe("AShM-300;ALM-C450;AGM-99", 0f,
+                        new FlameLayer[0],
+                        "AGM-99") },
+
+                { "MeridianYashma_Missile",
+                    new Recipe("AShM3 Tusko-B (HE);AShM-300;AGM-99;ALM-C450", 0f,
+                        new[] { new FlameLayer("AAM-29", 1.0f, "FireParticlesBooster") },
+                        "AAM-36 Scimitar") },
             };
 
         private readonly struct Trim
@@ -290,14 +378,42 @@ namespace MeridianWorks
 
                 { "MeridianScreamer_Missile/0", new Trim(0.28f) },
                 { "MeridianScreamer_Missile/1", new Trim(0.28f) },
-                { "MeridianAMRAAM_Missile/0",   new Trim(0.27f) },
-                { "MeridianAMRAAM_Missile/1",   new Trim(0.27f) },
-                { "MeridianExocetAir_Missile/0", new Trim(0.36f) },
-                { "MeridianExocetAir_Missile/1", new Trim(0.24f) },
+                { "MeridianAMRAAM_Missile/0",   new Trim(1.02f) },
+                { "MeridianAMRAAM_Missile/1",   new Trim(1.02f) },
+                { "MeridianExocetAir_Missile/0", new Trim(-0.14f) },
+
+                { "MeridianExocetAir_Missile/1", new Trim(1.25f) },
+
+                { "MeridianYashma_Missile/0", new Trim(-0.05f, 0.8f) },
+                { "MeridianYashma_Missile/1", new Trim(3.018f, 0.8f) },
             };
 
-        private static Trim TrimFor(string ourKey, int stage) =>
-            Trims.TryGetValue(ourKey + "/" + stage, out Trim t) ? t : new Trim(0f);
+        private static Trim TrimFor(string ourKey, int stage)
+        {
+            Trim t = Trims.TryGetValue(ourKey + "/" + stage, out Trim found) ? found : new Trim(0f);
+
+            if (!MountTweak.TryPlume(ourKey, stage, out MountTweak.PlumeOverride o)) return t;
+
+            Trim over = new Trim(
+                o.Aft   ?? t.Aft,
+                o.Width ?? t.Width,
+                o.Glow  ?? t.Glow,
+                o.Blue  ?? t.Blue,
+                o.Smoke ?? t.Smoke);
+
+            if (_trimLogged.Add(ourKey + "/" + stage))
+                Plugin.Log.LogInfo(
+                    $"[Meridian] TRIM {ourKey} stage {stage}: {MountTweak.FileName} overrides the "
+                    + $"compiled trim - aft {t.Aft:0.###} -> {over.Aft:0.###}, width {t.Width:0.###} "
+                    + $"-> {over.Width:0.###}, glow {t.Glow:0.###} -> {over.Glow:0.###}, blue "
+                    + $"{t.Blue:0.###} -> {over.Blue:0.###}, smoke {t.Smoke:0.###} -> {over.Smoke:0.###}.");
+
+            return over;
+        }
+
+        private static readonly HashSet<string> _trimLogged = new HashSet<string>();
+
+        private static readonly HashSet<string> _loopLogged = new HashSet<string>();
 
         private static readonly string[] FlameWords =
             { "fire", "flame", "muzzle", "ramjet", "fwoosh", "flash", "spark" };
@@ -332,7 +448,43 @@ namespace MeridianWorks
                     keep = (flame == smoke) || (flame == keepFlame);
                 }
 
-                if (!keep) t.gameObject.SetActive(false);
+                if (!keep)
+                {
+                    t.gameObject.SetActive(false);
+                    _disabledRoles.Add(t.gameObject);
+                }
+            }
+        }
+
+        private static readonly List<GameObject> _disabledRoles = new List<GameObject>();
+
+        private sealed class GhostSweep : MonoBehaviour
+        {
+            internal GameObject[]? Doomed;
+            internal string Key = "";
+
+            private System.Collections.IEnumerator Start()
+            {
+
+                yield return null;
+                yield return null;
+
+                int swept = 0;
+                if (Doomed != null)
+                {
+                    foreach (GameObject g in Doomed)
+                    {
+                        if (g == null) continue;
+                        Destroy(g);
+                        swept++;
+                    }
+                }
+
+                if (swept > 0)
+                    Plugin.Diag($"[Meridian] GHOSTS {Key}: swept {swept} inert effect "
+                                + "object(s) that KeepRole had switched off.");
+
+                Destroy(this);
             }
         }
 
@@ -370,7 +522,7 @@ namespace MeridianWorks
             float back = float.MaxValue;
             foreach (ParticleSystem ps in clone.GetComponentsInChildren<ParticleSystem>(true))
             {
-                if (!ps.gameObject.activeInHierarchy) continue;
+
                 Vector3 local = clone.transform.InverseTransformPoint(ps.transform.position);
                 if (local.z < back) { back = local.z; origin = local; }
             }
@@ -411,8 +563,49 @@ namespace MeridianWorks
             return ChooseDonor(ourKey, WantedPlume(ourKey), "plume");
         }
 
-        private static string? WantedPlume(string ourKey) =>
-            Recipes.TryGetValue(ourKey, out Recipe r) ? r.Plume : null;
+        private static string? WantedPlume(string ourKey)
+        {
+            if (_forcedPlume != null) return _forcedPlume;
+
+            string? fromFile = MountTweak.DonorFor(ourKey);
+            if (fromFile != null)
+            {
+                WarnIfSettled(ourKey, fromFile);
+                return fromFile;
+            }
+
+            return Recipes.TryGetValue(ourKey, out Recipe r) ? r.Plume : null;
+        }
+
+        private static readonly HashSet<string> SettledDonors = new HashSet<string>(StringComparer.Ordinal)
+        {
+
+            "MeridianExocetAir_Missile",
+            "MeridianScreamer_Missile",
+            "MeridianAMRAAM_Missile",
+
+            "MeridianYashma_Missile",
+        };
+
+        private static readonly HashSet<string> _saidSettled = new HashSet<string>(StringComparer.Ordinal);
+
+        private static void WarnIfSettled(string ourKey, string fromFile)
+        {
+            if (!SettledDonors.Contains(ourKey)) return;
+            if (!_saidSettled.Add(ourKey)) return;
+
+            string authored = Recipes.TryGetValue(ourKey, out Recipe r) ? r.Plume : "(none)";
+            if (string.Equals(authored, fromFile, StringComparison.Ordinal)) return;
+
+            Plugin.Log.LogWarning(
+                "[Meridian] SETTLED DONOR OVERRIDDEN: " + ourKey + " is authored to wear '"
+                + authored + "', which the owner flew and confirmed on 2026-09-14, but "
+                + MountTweak.FileName + " carries a [donors] line pointing it at '" + fromFile
+                + "'. The file wins, as it is meant to. If that line is a leftover from a "
+                + "trial, delete it - this round is supposed to look the way the table says.");
+        }
+
+        private static string? _forcedPlume;
 
         private static Donor? ChooseDonor(string ourKey, string? wanted, string role)
         {
@@ -420,19 +613,29 @@ namespace MeridianWorks
             if (donors.Count == 0) return null;
 
             Donor? named = null;
+            string tried = "";
             if (!string.IsNullOrEmpty(wanted))
             {
-                foreach (Donor d in donors)
+                foreach (string candidate in wanted!.Split(';'))
                 {
-                    if (d.Key.IndexOf(wanted, StringComparison.OrdinalIgnoreCase) < 0) continue;
-                    named = d;
-                    break;
+                    string want = candidate.Trim();
+                    if (want.Length == 0) continue;
+                    tried = tried.Length == 0 ? want : tried + ", " + want;
+
+                    foreach (Donor d in donors)
+                    {
+                        if (d.Key.IndexOf(want, StringComparison.OrdinalIgnoreCase) < 0) continue;
+                        named = d;
+                        break;
+                    }
+
+                    if (named != null) break;
                 }
 
                 if (named == null)
                     Plugin.Log.LogWarning(
-                $"[Meridian] {ourKey}: the {role} donor '{wanted}' the owner picked was not "
-                + "found, so one was chosen by burn time instead.");
+                $"[Meridian] {ourKey}: none of the {role} donor(s) '{tried}' the owner picked "
+                + "were loaded in this mission, so one was chosen by burn time instead.");
             }
 
             const float wantedBurn = 4f;
@@ -451,6 +654,188 @@ namespace MeridianWorks
             }
 
             return best;
+        }
+
+        internal readonly struct Candidate
+        {
+            internal Candidate(string key, float score, string why)
+            {
+                Key = key; Score = score; Why = why;
+            }
+
+            internal string Key { get; }
+            internal float Score { get; }
+
+            internal string Why { get; }
+        }
+
+        private static readonly (string Word, string Class)[] EngineWords =
+        {
+            ("ramjet",           "ramjet"),
+            ("cruise",           "cruise"),
+            ("terrain-hugging",  "cruise"),
+            ("sea-skimming",     "cruise"),
+            ("low altitude",     "cruise"),
+            ("anti-ship",        "surface"),
+            ("anti-surface",     "surface"),
+            ("air-to-ground",    "surface"),
+            ("ground targets",   "surface"),
+            ("air-to-air",       "air"),
+            ("aerial targets",   "air"),
+            ("heat seeking",     "air"),
+            ("radar homing",     "air"),
+            ("beyond visual",    "air"),
+            ("rocket",           "rocket"),
+            ("ballistic",        "ballistic"),
+        };
+
+        private static string OurClass(Missile ours)
+        {
+            if (_fMotors?.GetValue(ours) is not Array motors || motors.Length == 0)
+                return "rocket";
+
+            float lastBurn = 0f, lastThrust = 0f;
+            for (int i = 0; i < motors.Length; i++)
+            {
+                object? m = motors.GetValue(i);
+                if (m == null) continue;
+                lastBurn = FloatField(m, "burnTime");
+                lastThrust = FloatField(m, "thrust");
+            }
+
+            if (lastBurn >= 30f && lastThrust >= 20000f) return "ramjet";
+            if (lastBurn >= 30f) return "cruise";
+            return "rocket";
+        }
+
+        private static float FloatField(object o, string name)
+        {
+            try
+            {
+                FieldInfo? f = AccessTools.Field(o.GetType(), name);
+                return f?.GetValue(o) is float v ? v : 0f;
+            }
+            catch { return 0f; }
+        }
+
+        private static string OurRole(Missile ours)
+        {
+            try
+            {
+                WeaponInfo? info = ours.GetWeaponInfo();
+
+                if (info != null && info.targetRequirements.maxSpeed < 150f) return "surface";
+            }
+            catch { }
+            return "air";
+        }
+
+        internal static List<Candidate> CandidatesFor(Missile ours)
+        {
+            var outp = new List<Candidate>();
+            if (ours == null) return outp;
+
+            string want = OurClass(ours);
+            string role = OurRole(ours);
+            float ourBurn = Mathf.Max(ours.GetTotalBurnTime(), 0.1f);
+
+            Encyclopedia? enc = GameData.EncyclopediaOrNull();
+
+            foreach (Donor d in FindDonors())
+            {
+                string text = (d.Key + " " + DescriptionOf(enc, d.Key)).ToLowerInvariant();
+
+                float score = 0f;
+                string why = "";
+                var classes = new HashSet<string>();
+
+                foreach ((string word, string cls) in EngineWords)
+                {
+                    if (text.IndexOf(word, StringComparison.Ordinal) < 0) continue;
+                    if (!classes.Add(cls)) continue;
+
+                    if (cls == want) { score += 3f; why = Join(why, cls + " engine"); }
+                    else if (cls == role) { score += 1.5f; why = Join(why, cls + " role"); }
+                    else { score += 0.25f; why = Join(why, cls); }
+                }
+
+                float burn = Mathf.Max(d.Burn, 0.1f);
+                float ratio = Mathf.Abs(Mathf.Log(burn / ourBurn));
+                score += 1f / (1f + ratio);
+
+                if (why.Length == 0) why = "no engine words, burn only";
+                if (burn < ourBurn * 0.8f) why = Join(why, "looped to cover " + ourBurn.ToString("0.#") + "s");
+
+                outp.Add(new Candidate(d.Key, score, why));
+            }
+
+            outp.Sort((a, b) => b.Score.CompareTo(a.Score));
+            return outp;
+        }
+
+        private static string Join(string a, string b) => a.Length == 0 ? b : a + ", " + b;
+
+        private static string DescriptionOf(Encyclopedia? enc, string donorKey)
+        {
+            try
+            {
+                if (enc?.missiles == null) return "";
+                foreach (MissileDefinition d in enc.missiles)
+                {
+                    if (d == null) continue;
+                    if (!string.Equals($"{d.jsonKey} {d.unitName}".Trim(), donorKey,
+                                       StringComparison.Ordinal)) continue;
+                    return d.description ?? "";
+                }
+            }
+            catch { }
+            return "";
+        }
+
+        internal static bool Redress(Missile ours, string donorKey)
+        {
+            if (ours == null || string.IsNullOrEmpty(donorKey)) return false;
+
+            try
+            {
+                Transform? had = ours.transform.Find(ContainerName);
+                if (had != null)
+                {
+
+                    if (_fEffectsTransform?.GetValue(ours) as Transform == had)
+                        _fEffectsTransform?.SetValue(ours, null);
+
+                    UnityEngine.Object.DestroyImmediate(had.gameObject);
+                }
+
+                _forcedPlume = donorKey;
+                try { Apply(ours); }
+                finally { _forcedPlume = null; }
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Plugin.Log.LogWarning(
+                    "[Meridian] Could not re-dress " + Key(ours) + " with '" + donorKey
+                    + "': " + e.Message);
+                _forcedPlume = null;
+                return false;
+            }
+        }
+
+        private static int LoopToCover(GameObject clone)
+        {
+            int looped = 0;
+            foreach (ParticleSystem ps in clone.GetComponentsInChildren<ParticleSystem>(true))
+            {
+                if (ps == null) continue;
+                ParticleSystem.MainModule main = ps.main;
+                if (main.loop) continue;
+                main.loop = true;
+                looped++;
+            }
+            return looped;
         }
 
         private static List<Donor> FindDonors()
@@ -518,6 +903,20 @@ namespace MeridianWorks
                 if (Mathf.Abs(trim.Aft) > 0.0001f)
                     clone.transform.localPosition += new Vector3(0f, 0f, -trim.Aft);
 
+                MountTweak.RegisterFx(ourKeyForLog, stage, "plume", clone.transform, trim.Aft);
+
+                float oursBurn = ours.GetTotalBurnTime();
+                if (donor.Burn > 0f && oursBurn > 0f && donor.Burn < oursBurn * 0.8f)
+                {
+                    int loopedNow = LoopToCover(clone);
+                    if (loopedNow > 0 && _loopLogged.Add(ourKeyForLog + "/" + stage))
+                        Plugin.Diag(
+                            $"[Meridian] {ourKeyForLog}: stage {stage}'s donor '{donor.Key}' "
+                            + $"burns {donor.Burn:0.#}s against our {oursBurn:0.#}s, so "
+                            + $"{loopedNow} of its particle system(s) were set to loop. Its "
+                            + "audio is untouched and stays the one-shot it was authored as.");
+                }
+
                 clone.SetActive(true);
 
                 if (Mathf.Abs(trim.Smoke - 1f) > 0.0001f)
@@ -527,6 +926,8 @@ namespace MeridianWorks
                 if (trim.Blue > 0.0001f) BlueShift(clone, trim.Blue);
 
                 NormalizeSimulationSpace(clone, donor.Key);
+
+                HaulSmokeAft(ours, clone, nozzle, ourKeyForLog, stage);
 
                 Vector3 seatLocal = ours.transform.InverseTransformPoint(clone.transform.position);
                 Vector3 seatFwd = ours.transform.InverseTransformDirection(clone.transform.forward);
@@ -560,13 +961,14 @@ namespace MeridianWorks
                 particles.AddRange(cloneParticles);
                 trails.AddRange(cloneTrails);
 
-                var cloneLights = clone.GetComponentsInChildren<Light>(true).ToList();
+                var cloneLights = clone.GetComponentsInChildren<Light>(true)
+                    .Where(x => x.gameObject.activeInHierarchy).ToList();
                 ScaleWorldSpaceEffects(clone, cloneLights, PlumeScale(nozzle));
                 lights.AddRange(cloneLights);
 
                 FlameLayer[] layers = stage == 0
                     ? (recipe.Flames ?? Array.Empty<FlameLayer>())
-                    : Array.Empty<FlameLayer>();
+                    : (recipe.LaterFlames ?? Array.Empty<FlameLayer>());
                 for (int f = 0; f < layers.Length; f++)
                 {
                     FlameLayer layer = layers[f];
@@ -588,6 +990,8 @@ namespace MeridianWorks
                     float flameAft = trim.Aft + layer.Aft;
                     if (Mathf.Abs(flameAft) > 0.0001f)
                         fc.transform.localPosition += new Vector3(0f, 0f, -flameAft);
+
+                    MountTweak.RegisterFx(ourKeyForLog, stage, "flame", fc.transform, flameAft);
 
                     NormalizeSimulationSpace(fc, fd.Value.Key);
 
@@ -801,10 +1205,111 @@ namespace MeridianWorks
                 "round, and were re-based. That is the plume that starts behind the aircraft.");
         }
 
+        private static void HaulSmokeAft(Missile ours, GameObject clone, Transform nozzle,
+                                         string ourKey, int stage)
+        {
+            float nozzleZ = ours.transform.InverseTransformPoint(nozzle.position).z;
+            var moved = new List<string>();
+
+            foreach (ParticleSystem ps in clone.GetComponentsInChildren<ParticleSystem>(true))
+            {
+                if (ps == null || IsFlame(ps)) continue;
+
+                Vector3 inOurs = ours.transform.InverseTransformPoint(ps.transform.position);
+                if (inOurs.z <= nozzleZ + 0.001f) continue;
+
+                float ahead = inOurs.z - nozzleZ;
+                ps.transform.position -= ours.transform.forward * ahead;
+                moved.Add(ps.name + " " + ahead.ToString("0.00") + "m");
+            }
+
+            if (!_aheadLogged.Add(ourKey + "/" + stage)) return;
+
+            var seen = new List<string>();
+            foreach (ParticleSystem ps in clone.GetComponentsInChildren<ParticleSystem>(true))
+            {
+                if (ps == null) continue;
+                ParticleSystem.MainModule main = ps.main;
+                seen.Add(ps.name
+                    + " z=" + ours.transform.InverseTransformPoint(ps.transform.position).z.ToString("0.00")
+                    + (IsFlame(ps) ? " FLAME" : " SMOKE")
+                    + " " + main.simulationSpace
+                    + " speed=" + main.startSpeed.constantMax.ToString("0.#")
+                    + " life=" + main.startLifetime.constantMax.ToString("0.##"));
+            }
+
+            Plugin.Diag("[Meridian] AHEAD " + ourKey + " stage " + stage
+                + ": nozzle z=" + nozzleZ.ToString("0.00") + " | "
+                + (moved.Count == 0
+                    ? "nothing was in front of it"
+                    : moved.Count + " smoke system(s) hauled back: " + string.Join(", ", moved.ToArray()))
+                + " | all systems: " + string.Join(" ; ", seen.ToArray()));
+        }
+
+        private static readonly HashSet<string> _aheadLogged = new HashSet<string>();
+
         private static bool IsFlame(ParticleSystem ps)
         {
             ParticleSystem.MainModule main = ps.main;
             return main.startLifetime.constantMax <= 0.5f;
+        }
+
+        private const float SustainVolume = 0.45f;
+
+        private const float SustainPitch = 0.85f;
+
+        private static readonly HashSet<string> _saidAudio = new HashSet<string>(StringComparer.Ordinal);
+
+        private static readonly Dictionary<string, string> SoundDonors = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            { "MeridianSRM8_Missile", "AAM-29;AAM-36;MMR-S3" },
+            { "MeridianIRML7_Missile", "AAM-29;AAM-36;MMR-S3" },
+            { "MeridianAAM63_Missile", "AAM-29;AAM-36;MMR-S3" },
+            { "MeridianAAM41_Missile", "AAM-29;AAM-36;MMR-S3" },
+            { "MeridianScreamer_Missile", "AAM-29;AAM-36;MMR-S3" },
+            { "MeridianAMRAAM_Missile", "AAM-29;AAM-36;MMR-S3" },
+            { "MeridianARAD72_Missile", "ARAD-116;AAM-29" },
+            { "MeridianKalibr_Missile", "ALM-C450;AGM-99;AShM-300" },
+            { "MeridianKalibrEW_Missile", "ALM-C450;AGM-99;AShM-300" },
+            { "MeridianBlackArrow_Missile", "ALM-C450;AGM-99;AShM-300" },
+        };
+
+        private static void BorrowAudioOnly(Missile ours, object? motor, int stage)
+        {
+            if (motor == null) return;
+            if (AccessTools.Field(motor.GetType(), "audioSources")?.GetValue(motor) is AudioSource[] have &&
+                have.Length > 0) return;
+
+            string? wanted = SoundDonors.TryGetValue(Key(ours), out string named) ? named : WantedPlume(Key(ours));
+            Donor? pick = ChooseDonor(Key(ours), wanted, "sound");
+            if (pick == null) return;
+
+            List<Transform> nozzles = FindNozzles(ours);
+            Transform parent = nozzles.Count > 0 ? nozzles[0] : ours.transform;
+
+            var audio = new List<AudioSource>();
+            foreach (AudioSource src in DonorMotorAudio(pick.Value.Missile))
+            {
+                AudioSource? dst = RebuildAudio(src, parent, $"MotorAudio_{stage}_{audio.Count}");
+                if (dst == null) continue;
+                if (stage > 0)
+                {
+                    dst.volume = src.volume * SustainVolume;
+                    dst.pitch = src.pitch * SustainPitch;
+                    dst.loop = true;
+                }
+                ours.RegisterDopplerSound(dst);
+                audio.Add(dst);
+            }
+            SetMotorArray(motor, "audioSources", audio.ToArray());
+
+            if (AccessTools.Field(motor.GetType(), "activated")?.GetValue(motor) is true)
+                foreach (AudioSource a in audio) a.Play();
+
+            if (_saidAudio.Add(Key(ours) + "#" + stage))
+                Plugin.Diag($"[Meridian] AUDIO {Key(ours)} stage {stage}: authored effects, {audio.Count} motor sound(s) "
+                    + (stage > 0 ? $"at {SustainVolume:0.##}x volume, looping, " : string.Empty)
+                    + $"borrowed from {pick.Value.Missile.name}.");
         }
 
         private static AudioSource[] DonorMotorAudio(Missile donor)

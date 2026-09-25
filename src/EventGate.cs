@@ -20,7 +20,11 @@ namespace MeridianWorks
         private static FieldInfo? AccessTools_Field(string name) =>
             HarmonyLib.AccessTools.Field(typeof(WeaponMount), name);
 
-        private static bool _done;
+        private static bool _announced;
+
+        internal static int LastAirframesSeen;
+
+        private static readonly HashSet<string> _unindexedReported = new HashSet<string>();
 
         private static bool IsOurAirToAir(WeaponMount m)
         {
@@ -41,6 +45,21 @@ namespace MeridianWorks
             return false;
         }
 
+        internal static IEnumerable<WeaponMount> BuildTwins()
+        {
+            if (FEvent == null) yield break;
+
+            var plains = new List<WeaponMount>();
+            foreach (WeaponMount m in EncyclopediaRegistration.AllOurMounts())
+                if (IsOurAirToAir(m) && !_clones.ContainsKey(m)) plains.Add(m);
+
+            foreach (WeaponMount plain in plains)
+            {
+                WeaponMount? twin = EventTwin(plain);
+                if (twin != null) yield return twin;
+            }
+        }
+
         private static WeaponMount? EventTwin(WeaponMount plain)
         {
             if (_clones.TryGetValue(plain, out WeaponMount cached)) return cached;
@@ -58,17 +77,14 @@ namespace MeridianWorks
             return twin;
         }
 
-        internal static void RunOnce()
+        internal static int Run()
         {
-            if (_done) return;
-            _done = true;
-
             if (FEvent == null)
             {
                 Plugin.Log.LogWarning(
                 "[Meridian] The event-content gate is OFF: WeaponMount has no "
                 + "'isEventContent' field any more.");
-                return;
+                return 0;
             }
 
             int swapped = 0;
@@ -102,24 +118,88 @@ namespace MeridianWorks
                 }
             }
 
-            Encyclopedia? enc = GameData.EncyclopediaOrNull();
-            if (enc?.weaponMounts != null)
-                foreach (WeaponMount twin in _clones.Values)
-                    if (twin != null && !enc.weaponMounts.Contains(twin))
-                        enc.weaponMounts.Add(twin);
+            foreach (WeaponMount twin in _clones.Values)
+            {
+                if (twin == null) continue;
+                if (((INetworkDefinition)twin).LookupIndex != null) continue;
+                if (!_unindexedReported.Add(twin.jsonKey ?? "?")) continue;
+                Plugin.Log.LogError(
+                    "[Meridian] The event-content twin '" + (twin.jsonKey ?? "?")
+                    + "' has no LookupIndex, so selecting it would fail to spawn the "
+                    + "aircraft. It was built after the Encyclopedia was indexed, which "
+                    + "should not be possible - see EventGate.BuildTwins.");
+            }
+
+            LastAirframesSeen = airframes;
 
             if (airframes == 0)
             {
-                Plugin.Log.LogWarning(
-                "[Meridian] The event-content gate found NO Darkreach and NO Chimera "
-                + "in this session, so nothing was gated.");
+
+                return 0;
+            }
+
+            if (swapped > 0 || !_announced)
+            {
+                _announced = true;
+                Plugin.Diag(
+                    $"[Meridian] Event gate: {swapped} air-to-air fitting(s) on {airframes} "
+                    + $"weapon manager(s) ({string.Join(", ", names.ToArray())}) were replaced "
+                    + $"by event-content twins, from {_clones.Count} cloned mount(s).");
+            }
+
+            return swapped;
+        }
+    }
+
+    internal sealed class EventGatePlacer : MonoBehaviour
+    {
+        private const float FastInterval = 4f;
+        private const float SlowInterval = 30f;
+        private const int SettledAfter = 3;
+
+        private float _next;
+        private int _lastAirframes = -1;
+        private int _steady;
+        private bool _saidNothingFound;
+
+        private void Update()
+        {
+            if (Time.unscaledTime < _next) return;
+
+            int swapped;
+            try
+            {
+                swapped = EventGate.Run();
+            }
+            catch (Exception ex)
+            {
+
+                Plugin.Log.LogWarning("[Meridian] Event gate: a walk failed, and it "
+                                      + "will be retried: " + ex.Message);
+                _next = Time.unscaledTime + SlowInterval;
                 return;
             }
 
-            Plugin.Diag(
-                $"[Meridian] Event gate: {swapped} air-to-air fitting(s) on {airframes} "
-                + $"weapon manager(s) ({string.Join(", ", names.ToArray())}) were replaced "
-                + $"by event-content twins, from {_clones.Count} cloned mount(s).");
+            int airframes = EventGate.LastAirframesSeen;
+            if (airframes != _lastAirframes)
+            {
+                _lastAirframes = airframes;
+                _steady = 0;
+            }
+            else if (swapped == 0)
+            {
+                _steady++;
+            }
+
+            if (_steady >= SettledAfter && airframes == 0 && !_saidNothingFound)
+            {
+                _saidNothingFound = true;
+                Plugin.Log.LogWarning(
+                    "[Meridian] The event-content gate has settled without finding a "
+                    + "Darkreach or a Chimera, so nothing was gated this session.");
+            }
+
+            _next = Time.unscaledTime + (_steady >= SettledAfter ? SlowInterval : FastInterval);
         }
     }
 }

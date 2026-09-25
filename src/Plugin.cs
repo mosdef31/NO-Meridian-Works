@@ -3,6 +3,7 @@ using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace MeridianWorks
 {
@@ -26,12 +27,26 @@ namespace MeridianWorks
 
         private Harmony? _harmony;
 
+        private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            HazeOpaqueTexture.RunForScene(scene.name);
+        }
+
         private void Awake()
         {
             Instance = this;
             Log = Logger;
 
-            PluginConfig.Bind(Config);
+            try
+            {
+                PluginConfig.Bind(Config);
+            }
+            catch (Exception ex)
+            {
+                Log.LogError(
+                    $"[Meridian] Config binding failed, so some toggles are on their " +
+                    $"defaults this run. The rest of the pack is unaffected: {ex.Message}");
+            }
 
             _harmony = new Harmony(PluginInfo.GUID);
             _harmony.PatchAll();
@@ -41,10 +56,20 @@ namespace MeridianWorks
                 hideFlags = HideFlags.HideAndDontSave
             };
 
+            SceneManager.sceneLoaded += OnSceneLoaded;
+
             new GameObject(nameof(HairpinPlacer), typeof(HairpinPlacer))
             {
                 hideFlags = HideFlags.HideAndDontSave
             };
+
+            new GameObject(nameof(EventGatePlacer), typeof(EventGatePlacer))
+            {
+                hideFlags = HideFlags.HideAndDontSave
+            };
+
+            Log.LogInfo(
+                "[Meridian] Mount tweaks read from '" + MountTweak.Path + "'.");
 
             Log.LogInfo($"[Meridian] {PluginInfo.Name} {PluginInfo.Version} loaded.");
         }
@@ -89,9 +114,10 @@ namespace MeridianWorks
 
                 AvailabilityGate.RunOnce();
 
-                EventGate.RunOnce();
+                EventGate.Run();
 
                 HairpinPod.Place();
+                Pab125HdMirror.Place();
 
                 if (Plugin.Diagnostics)
                 {

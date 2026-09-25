@@ -69,6 +69,8 @@ namespace MeridianWorks
         {
             try
             {
+
+                AuthoredMotorEffects.Apply(__instance);
                 MotorEffects.Apply(__instance);
             }
             catch (Exception ex)

@@ -23,7 +23,7 @@ namespace MeridianWorks
             if (livery == null) return;
             LiveryData.TextureColor[] colors = livery.Colors;
             if (colors == null || colors.Length == 0) return;
-            Color tint = colors[0].Color;
+            Color tint = Brighten(colors[0].Color);
 
             foreach (Renderer r in _ours)
             {
@@ -52,6 +52,16 @@ namespace MeridianWorks
                             + "name it in LiveryMirror.TintSlots.");
                 }
             }
+        }
+
+        internal static Color Brighten(Color livery)
+        {
+            Color.RGBToHSV(livery, out float h, out float s, out float v);
+            v = 1f;
+
+            Color lit = Color.HSVToRGB(h, s, v);
+            lit.a = livery.a;
+            return lit;
         }
 
         private static readonly HashSet<string> _unpainted = new HashSet<string>();

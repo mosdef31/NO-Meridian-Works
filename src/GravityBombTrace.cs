@@ -17,6 +17,7 @@ namespace MeridianWorks
         private static readonly FieldInfo? FAimPoint = AccessTools.Field(typeof(Missile), "aimPoint");
         private static readonly FieldInfo? FKnownPos = AccessTools.Field(typeof(OpticalSeeker), "knownPos");
         private static readonly FieldInfo? FRadarAlt = AccessTools.Field(typeof(Missile), "radarAlt");
+        private static readonly FieldInfo? FCurrentFinArea = AccessTools.Field(typeof(Missile), "currentFinArea");
 
         private const float ProbeRadius = 12f;
 
@@ -40,7 +41,8 @@ namespace MeridianWorks
                 Plugin.Diag(
                     $"[Meridian] BOMB {KeyOf(m)} RELEASED at alt {p.y:0} m, "
                     + $"{(m.rb != null ? m.rb.velocity.magnitude : 0f):0} m/s, "
-                    + $"seeker {(FSeeker?.GetValue(m)?.GetType().Name ?? "none")}.");
+                    + $"seeker {(FSeeker?.GetValue(m)?.GetType().Name ?? "none")}, "
+                    + $"{(m.targetID.IsValid ? "target designated" : "nothing designated")}.");
             }
             catch
             {
@@ -78,11 +80,12 @@ namespace MeridianWorks
                 _released.Remove(m.GetInstanceID());
 
                 float radarAlt = FRadarAlt?.GetValue(m) as float? ?? float.NaN;
+                float area = FCurrentFinArea?.GetValue(m) as float? ?? float.NaN;
 
                 Plugin.Diag(
                     $"[Meridian] BOMB {key} DETONATED at alt {p.y:0} m, {radarAlt:0} m above what is under it, "
                     + $"{(m.rb != null ? m.rb.velocity.magnitude : 0f):0} m/s, armed={m.IsArmed()}, "
-                    + $"hitTerrain={hitTerrain} hitArmor={hitArmor}, after falling {fell:0} m. "
+                    + $"hitTerrain={hitTerrain} hitArmor={hitArmor}, drag area {area:0.000}, after falling {fell:0} m. "
                     + miss + "." + solved);
 
                 ReportNeighbour(m, key, p);

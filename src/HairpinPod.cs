@@ -514,6 +514,7 @@ namespace MeridianWorks
             try
             {
                 added = HairpinPod.Place();
+                added += Pab125HdMirror.Place();
             }
             catch (Exception ex)
             {

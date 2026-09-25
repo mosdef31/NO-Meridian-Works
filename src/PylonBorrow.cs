@@ -203,13 +203,13 @@ namespace MeridianWorks
 
             CloseToSkin(hardpoint, mount, spawned);
 
-            ClearTheFlap(hardpoint, mount, spawned);
-
             Paint(hardpoint, mount, spawned);
 
             MountFitProbe.Report(hardpoint, mount, spawned);
 
             MountCantProbe.Report(hardpoint, mount, spawned);
+
+            MountTweak.Register(hardpoint, mount, spawned);
         }
 
         private static void ApplyCore(Hardpoint hardpoint, WeaponMount mount, GameObject spawned)
@@ -442,139 +442,6 @@ namespace MeridianWorks
         private static readonly System.Reflection.FieldInfo? FEntryRenderer =
             AccessTools.Field(AccessTools.Inner(typeof(Hardpoint), "HardpointPylon"), "renderer");
 
-        private static void ClearTheFlap(Hardpoint hardpoint, WeaponMount mount, GameObject spawned)
-        {
-            if (mount == null || spawned == null || hardpoint == null) return;
-            if (string.IsNullOrEmpty(mount.jsonKey)) return;
-            if (!PluginInfo.IsOurMountKey(mount.jsonKey)) return;
-            if (mount.missileBay || mount.jsonKey.Contains("internal")) return;
-
-            Transform root = spawned.transform;
-
-            var all = new List<Renderer>(root.GetComponentsInChildren<Renderer>(true));
-            if (all.Count == 0) return;
-            if (!LocalBounds(root, all, out Bounds ours)) return;
-
-            Transform? air = AircraftRoot(hardpoint);
-            if (air == null) return;
-
-            float worst = 0f;
-            string which = "";
-            int flapsSeen = 0;
-            int surfacesSeen = 0;
-            List<ControlSurface> surfaces = SurfacesFor(hardpoint, air, out string route);
-            foreach (ControlSurface cs in surfaces)
-            {
-                if (cs == null) continue;
-                surfacesSeen++;
-                if (IsFlap(cs)) flapsSeen++;
-
-                GameObject? mesh = FlapMesh(cs);
-                var flapRenderers = new List<Renderer>(
-                    (mesh != null ? mesh : cs.gameObject).GetComponentsInChildren<Renderer>(true));
-                if (flapRenderers.Count == 0) continue;
-                if (!LocalBounds(root, flapRenderers, out Bounds flap)) continue;
-
-                if (flap.min.x > ours.max.x || flap.max.x < ours.min.x) continue;
-
-                if (flap.center.z > ours.center.z) continue;
-
-                float overlap = flap.max.z - ours.min.z;
-                if (overlap > worst)
-                {
-                    worst = overlap;
-                    which = cs.gameObject.name;
-                }
-            }
-
-            if (worst <= 0.001f)
-            {
-
-                if (_logged.Add(Where(hardpoint) + "|" + mount.jsonKey + "|noflap"))
-                    Plugin.Diag(
-                        $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: {surfacesSeen} control "
-                        + $"surface(s) found under '{air.name}' {route}, {flapsSeen} of them flagged "
-                        + "flaps, and none overlaps this mount across the span while sitting behind "
-                        + "it, so nothing was moved forward.");
-                return;
-            }
-
-            float mountLength = ours.size.z;
-            if (mountLength > 0.001f && worst > mountLength)
-            {
-                if (_logged.Add(Where(hardpoint) + "|" + mount.jsonKey + "|flap"))
-                    Plugin.Log.LogWarning(
-                        $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: surface '{which}' overlaps this "
-                        + $"mount by {worst:0.000} m, more than the mount's own {mountLength:0.000} m "
-                        + "length. That is not a surface sitting behind a pylon, so NOTHING was moved - "
-                        + "find out what that surface actually is before trusting the number.");
-                return;
-            }
-
-            float ceiling = -ours.min.z;
-            if (worst + 0.06f > ceiling)
-            {
-                if (_logged.Add(Where(hardpoint) + "|" + mount.jsonKey + "|flap"))
-                    Plugin.Log.LogWarning(
-                        $"[Meridian] CLEARANCE {Where(hardpoint)} {mount.jsonKey}: surface '{which}' "
-                        + $"needs this mount {worst + 0.06f:0.000} m forward, but the hardpoint sits "
-                        + $"{ceiling:0.000} m from its aft end, so that much would leave the rack "
-                        + "hanging off the front of its own pylon. NOTHING was moved and this round "
-                        + "still clips here. Remove this cell from loadout-table.md.");
-                return;
-            }
-
-            float shift = worst + 0.06f;
-            root.localPosition = root.localPosition + new Vector3(0f, 0f, shift);
-
-            if (!_logged.Add(Where(hardpoint) + "|" + mount.jsonKey + "|flap")) return;
-
-            Plugin.Diag(
-                $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: surface '{which}' reached "
-                + $"z={ours.min.z + worst:0.000} against this mount's aft end at z={ours.min.z:0.000}, "
-                + $"so the whole mount moved FORWARD {shift:0.000} m to clear it.");
-        }
-
-        private static readonly Dictionary<int, List<ControlSurface>> _surfaceCache =
-            new Dictionary<int, List<ControlSurface>>();
-
-        private static List<ControlSurface> SurfacesFor(Hardpoint hardpoint, Transform air, out string route)
-        {
-            var direct = new List<ControlSurface>(air.GetComponentsInChildren<ControlSurface>(true));
-            if (direct.Count > 0)
-            {
-                route = "by hierarchy";
-                return direct;
-            }
-
-            Unit? unit = UnitOf(hardpoint);
-            if (unit == null)
-            {
-                route = "by hierarchy (and no unit to sweep the scene for)";
-                return direct;
-            }
-
-            int key = unit.GetInstanceID();
-            if (_surfaceCache.TryGetValue(key, out List<ControlSurface> cached))
-            {
-                route = $"by scene sweep, cached ({cached.Count})";
-                return cached;
-            }
-
-            var mine = new List<ControlSurface>();
-            foreach (ControlSurface cs in Resources.FindObjectsOfTypeAll<ControlSurface>())
-            {
-                if (cs == null) continue;
-                if (!cs.gameObject.scene.IsValid()) continue;
-                if (OwnerUnit(cs) != unit) continue;
-                mine.Add(cs);
-            }
-
-            _surfaceCache[key] = mine;
-            route = $"by scene sweep, nothing under the unit's own transform ({mine.Count} matched this unit)";
-            return mine;
-        }
-
         private static Unit? UnitOf(Hardpoint hardpoint)
         {
             if (hardpoint == null) return null;
@@ -679,34 +546,21 @@ namespace MeridianWorks
         private static readonly System.Reflection.FieldInfo? FLiveryData =
             AccessTools.Field(typeof(WeaponManager), "liveryData");
 
-        private static bool IsFlap(ControlSurface cs)
-        {
-            try
-            {
-                FieldInfo? f = typeof(ControlSurface).GetField(
-                    "flap", BindingFlags.Instance | BindingFlags.NonPublic);
-                object? v = f?.GetValue(cs);
-                return v is bool b && b;
-            }
-            catch { return false; }
-        }
-
-        private static GameObject? FlapMesh(ControlSurface cs)
-        {
-            try
-            {
-                FieldInfo? f = typeof(ControlSurface).GetField(
-                    "visibleMesh", BindingFlags.Instance | BindingFlags.NonPublic);
-                return f?.GetValue(cs) as GameObject;
-            }
-            catch { return null; }
-        }
-
         private static void SeatInBay(Hardpoint hardpoint, WeaponMount mount, GameObject spawned)
         {
             Transform root = spawned.transform;
             var rounds = spawned.GetComponentsInChildren<MountedMissile>(true);
             if (rounds.Length == 0) return;
+
+            if (MountTweak.HasAuthoredSeat(hardpoint, mount))
+            {
+                if (_logged.Add(Where(hardpoint) + "|" + mount.jsonKey + "|authoredseat"))
+                    Plugin.Diag(
+                        $"[Meridian] {Where(hardpoint)} {mount.jsonKey}: this bay carries an "
+                        + "authored seat, so the fore/aft shove and the roof clamp both stood "
+                        + "aside and the block sits where it was measured.");
+                return;
+            }
 
             SeatInBayForeAft(hardpoint, mount, root, rounds);
             ClampToBayRoof(hardpoint, mount, root, rounds);
@@ -895,6 +749,8 @@ namespace MeridianWorks
                 + $"{rounds.Length} round(s) came DOWN together by {over:0.000} m onto the doors, "
                 + "keeping the arrangement the prefab authored.");
         }
+
+        internal static Transform? AircraftRootOf(Hardpoint hardpoint) => AircraftRoot(hardpoint);
 
         private static Transform? AircraftRoot(Hardpoint hardpoint)
         {

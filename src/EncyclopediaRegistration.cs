@@ -40,9 +40,18 @@ namespace MeridianWorks
         private static int _resolveAttempts;
 
         private static bool _resolveFailureLogged;
+
+        private static bool _diskSearchMissed;
         private static bool _addedLogged;
 
         internal static IList<WeaponMount> ResolvedMounts => _mounts;
+
+        internal static AssetBundle? OurBundle()
+        {
+            if (_ourBundle != null) return _ourBundle;
+            _ourBundle = FindOurLoadedBundle();
+            return _ourBundle;
+        }
 
         internal static IList<MissileDefinition> ResolvedMissiles => _defs;
 
@@ -70,11 +79,21 @@ namespace MeridianWorks
             if (enc == null) return;
             if (!TryResolveAssets()) return;
 
+            NameApply.Apply(_mounts);
+
             TurnRateCompat.Apply(_defs);
 
             StatOverrides.ApplyIfPresent(_defs);
 
+            AiEnvelope.Apply(_mounts, _defs);
+
+            ClientFlight.Apply(_defs);
+
+            CruiseWaypoint.Apply(_defs);
+
             ShaderRebind.Apply(_defs, _mounts);
+
+            HazeOpaqueTexture.RunOnce();
 
             bool added = false;
 
@@ -95,6 +114,8 @@ namespace MeridianWorks
                 enc.missiles.Add(def);
                 added = true;
             }
+
+            if (Pab125HdMirror.Build(enc)) added = true;
 
             if (HairpinPod.Build(enc))
             {
@@ -128,7 +149,21 @@ namespace MeridianWorks
                     }
                 }
 
+                HudIconBorrow.Apply(enc);
+
                 HairpinPod.Place();
+                Pab125HdMirror.Place();
+            }
+
+            foreach (WeaponMount twin in EventGate.BuildTwins())
+            {
+                if (twin == null) continue;
+                if (!_extraMounts.Contains(twin)) _extraMounts.Add(twin);
+                if (enc.weaponMounts != null && !ContainsMount(enc, twin))
+                {
+                    enc.weaponMounts.Add(twin);
+                    added = true;
+                }
             }
 
             if (!added || _addedLogged) return;
@@ -372,6 +407,16 @@ namespace MeridianWorks
                 + "our weapons and this game has no definitions to match them to.");
                 DumpLoadedBundleNames();
                 return false;
+            }
+
+            if (_resolveFailureLogged)
+            {
+                _resolveFailureLogged = false;
+                Plugin.Log.LogWarning(
+                    $"[Meridian] RETRACTED: the earlier 'INERT this session' error is WRONG and "
+                    + $"is withdrawn. Resolution succeeded on attempt {_resolveAttempts} with "
+                    + $"{_mounts.Count} mount(s) and {_defs.Count} missile definition(s). The pack "
+                    + "is live. Ignore the error above.");
             }
 
             foreach (WeaponMount mount in _mounts) NormalizeJsonKey(mount, ref mount.jsonKey);
@@ -647,6 +692,9 @@ namespace MeridianWorks
 
         private static AssetBundle? TryLoadBundleFromDisk()
         {
+
+            if (_diskSearchMissed) return null;
+
             try
             {
                 string root = Paths.PluginPath;
@@ -657,13 +705,20 @@ namespace MeridianWorks
 
                 if (file == null)
                 {
-                    Plugin.Log.LogWarning($"[Meridian] No {PluginInfo.BundleName} found under '{root}'.");
+                    _diskSearchMissed = true;
+
+                    Plugin.Log.LogInfo(
+                        $"[Meridian] No loose {PluginInfo.BundleName} under '{root}', which is "
+                        + "the normal state - the bundle is embedded in the plugin. Said once; "
+                        + "the disk search is not repeated this session.");
                     return null;
                 }
                 return AssetBundle.LoadFromFile(file);
             }
             catch (Exception ex)
             {
+
+                _diskSearchMissed = true;
                 Plugin.Log.LogWarning($"[Meridian] Disk bundle load failed: {ex.Message}");
                 return null;
             }

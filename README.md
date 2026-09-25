@@ -30,7 +30,11 @@ Anticipate more additions as the pack grows.
 | AGM-33L Hornet | Laser | 12 km | 240 | 130 | 300 kg | $300k | Medium CAS |
 | AGM-92 | Optical, datalink | 90 km | 700 | 620 | 1100 kg | $2.6m | Long range finisher |
 | ARAD-72 | Radar homing | 70 km | 0 | 90 | 600 kg | $1.15m | SEAD |
-| Exocet AM39 | Programmed sea skim | 70 km | 2600 | 300 | 670 kg | $2.0m | Anti ship |
+| AShM-140 Exocet | Programmed sea skim | 70 km | 880 | 330 | 670 kg | $2.0m | Anti ship |
+| AShM-500 Yashma | Programmed sea skim | 70 km | 1400 | 500 | 1500 kg | $3.0m | Heavy anti ship |
+| AGM-102 Kalibr | Programmed route | 300 km | 1500 | 700 | 1200 kg | $3.4m | Deep strike |
+| AGM-102E Kalibr | Programmed route, jammer | 300 km | 300 | 180 | 1200 kg | $4.5m | Salvo lead |
+| AGM-190A Black Arrow | Programmed route | 250 km | 210 | 40 | 91 kg | $250k | Cheap mass strike |
 
 - **AGM-84 Warhawk:** locked on before release and needs nothing from you afterwards. A
   datalink keeps the aimpoint fresh, so you can shoot from further out than you can
@@ -45,10 +49,23 @@ Anticipate more additions as the pack grows.
   on a wing.
 - **ARAD-72:** homes on a radar that is transmitting. Fire it at a search site and it
   finds its own way there.
-- **Exocet AM39:** an anti ship missile that runs five metres above the water the whole
-  way in. It flies a programmed profile rather than one you steer, so you can leave the
-  moment it is off the rail, and it climbs over a headland rather than into it. Against
-  a ship it is the heaviest single blow in the pack.
+- **AShM-140 Exocet:** an anti ship missile that skims three metres above the water the
+  whole way in. It flies a programmed route rather than one you steer, so you can turn
+  away the moment it is off the rail.
+- **AShM-500 Yashma:** the heavy anti ship missile. A ramjet carries it in at Mach 2.5,
+  five metres above the water, and it hits harder than anything else aimed at a ship.
+- **AGM-102 Kalibr:** a long range subsonic cruise missile. It flies a waypoint route low
+  and slow, then climbs and dives on its target. Its wings are folded on the rail and
+  open after release.
+- **AGM-102E Kalibr:** the jamming Kalibr. It cruises silent, then jams one radar once it
+  closes within 30 km: its own target, or the nearest free radar in the lane ahead if
+  another round already has that one. Its warhead is cut to a fifth. Fire it at the head
+  of a salvo.
+- **AGM-190A Black Arrow:** a small, cheap cruise missile carried in numbers. It flies low
+  on a small jet, then climbs to pick out its target and dives on it. It hangs singly, in
+  pairs and four to a rack, and up to eighteen at a time in the largest bays.
+
+Cruise missiles follow every waypoint you draw on the map, in order.
 
 The laser rounds need the target lit until impact. That is the trade.
 
@@ -73,8 +90,8 @@ The laser rounds need the target lit until impact. That is the trade.
 | AAM-63 Falchion | Active radar | 60 km | 22 | 190 kg | $1.6m | Workhorse BVR |
 | IRM-L7 | Heat | 25 km | 40 | 245 kg | $1.5m | Ambush tactics |
 | SRM-8 Kukri | Heat | 6.5 km | 7 | 55 kg | $420k | Merge and dog fighting |
-| Screamer | Active radar | 50 km | 16 | 110 kg | $1.45m | Hypersonic BVR |
-| AIM-120C | Active radar | 35 km | 18 | 155 kg | $950k | Cheap mass BVR |
+| AAM-90 Estoc | Active radar | 50 km | 16 | 110 kg | $1.45m | Hypersonic BVR |
+| AAM-120C | Active radar | 35 km | 18 | 155 kg | $800k | Cheap mass BVR |
 | AGR-40 Hairpin | Infrared | 6 km | 20 | 20 kg | $50k | Cheap close defense and anti saturation |
 
 - **AAM-41 Gram:** the long one. Its own radar takes over at the end, so you can turn
@@ -82,11 +99,11 @@ The laser rounds need the target lit until impact. That is the trade.
 - **AAM-63 Falchion:** shorter and cheaper than the Gram, and quicker off the rail.
 - **IRM-L7:** a heat seeker with a long burn, for shots further out than a dogfight.
 - **SRM-8 Kukri:** small, light and made for close in. Carry a lot of them.
-- **Screamer:** the fast one. A small warhead on a very large motor, uncapped, so it
+- **AAM-90 Estoc:** the fast one. A small warhead on a very large motor, uncapped, so it
   arrives before a large aircraft has time to turn beam on. It costs nearly as much as
   the Gram and reaches half as far; what you are buying is the time the target does not
   get.
-- **AIM-120C:** the cheap one. It flies as well as anything in its class and its radar
+- **AAM-120C:** the cheap one. It flies as well as anything in its class and its radar
   is the weak part: a target that descends into clutter or turns beam on will break the
   lock outright rather than merely pull the round off its aim. Carry several.
 - **AGR-40 Hairpin:** an infrared kinetic interceptor, four or twelve to a pod. A heat
@@ -113,37 +130,43 @@ you fly.
   damage and its Encyclopedia entry, and it has never been possible to fly: the only rack
   it fits was switched off, so it never reaches the loadout screen. Meridian Works turns
   that rack back on and offers it on every station that already carries the plain
-  PAB-125, thirteen airframes in all.
+  PAB-125.
+
+  Its CCIP pipper is inaccurate: the bomb does not always land where the pipper shows.
 
 ## Carriage
 
 | Weapon | Pylon | Bay |
 |---|---|---|
-| AGM-84 Warhawk | single, twin | single, twin, four-round |
+| AGM-84 Warhawk | single, twin | twin, four-round |
 | AGM-57L Bulldog | single, twin | single |
 | AGM-33L Hornet | single, twin | single, twin |
-| AGM-92 | single | none |
-| ARAD-72 | single | single, twin, four-round |
-| GBO-900 | single | single, twin |
-| GBP-500 Bodkin | single, twin | single, twin, four-round, six-round |
-| AAM-41 Gram | single, twin | single, twin, four-round, six-round |
-| AAM-63 Falchion | single, twin | single, twin, four-round, six-round |
-| IRM-L7 | single, twin | none |
-| SRM-8 Kukri | single, twin | none |
-| Screamer | single | none |
-| AIM-120C | single | single, twin, three-round, eight-round |
-| Exocet AM39 | single | none |
+| AAM-41 Gram | single, twin | single, twin, three-round, eight-round |
+| SRM-8 Kukri | single, twin | single, twin |
+| IRM-L7 | single, twin | six-round |
+| AAM-63 Falchion | single, twin, three-round | single, twin, three-round, eight-round |
+| ARAD-72 | single | twin, four-round |
+| GBO-900 | single | single |
+| AGM-92 | single | single |
+| GBP-500 Bodkin | single | single, twin, six-round, nine-round, eighteen-round |
+| AAM-90 Estoc | single | single, twin, six-round |
+| AAM-120C | single, twin, three-round | single, twin, three-round, eight-round |
+| AShM-140 Exocet | single | three-round, four-round |
+| AShM-500 Yashma | single | three-round, four-round, five-round |
+| AGM-102 Kalibr | single | single, twin, four-round, five-round |
+| AGM-102E Kalibr | single | single, twin, four-round, five-round |
+| AGM-190A Black Arrow | single, twin, four-round | single, twin, three-round, four-round, nine-round, ten-round, eighteen-round |
 | AGR-40 Hairpin | four-round pod, twelve-round pod | none |
 | PAB-125HD | triple | none |
 
 Where a fitting appears is decided by what the aircraft already carries there, so a
 station cleared for something of the same size and weight gets the option and one that
-is not does not. The heat seekers go on pylons only. Air to air weapons on the two
-largest airframes are event content, so a server has to allow it.
+is not does not. Air to air weapons on the two largest airframes are event content, so a
+server has to allow it.
 
 ## What the pack does beyond adding weapons
 
-Most of the work in this mod is not the twelve rounds. It is making them behave like
+Most of the work in this mod is not the rounds themselves. It is making them behave like
 weapons the game shipped with.
 
 - **AI flights carry them.** Friendly and enemy aircraft spawn with Meridian stores at
@@ -189,11 +212,14 @@ higher number than this release does.
 
 ## Settings
 
-Three settings, in `BepInEx/config/com.meridianworks.cfg`.
+Six settings, in `BepInEx/config/com.meridianworks.cfg`.
 
 | Setting | Section | Default | What it does |
 |---|---|---|---|
 | `Diagnostics` | `Meridian Works` | `false` | Writes detailed lines to the BepInEx log describing how each Meridian store is assembled and mounted. |
+| `Ribbon smoke trail` | `Effects` | `true` | Draws missile smoke as one connected ribbon, the way the game's own missiles do. Off gives a trail of separate puffs. |
+| `Borrow the game heat haze` | `Effects` | `true` | Draws exhaust heat haze with the game's own distortion. Off uses the pack's own haze, which can look like flat pale sheets on some scenes. |
+| `Sweep inert borrowed effects` | `Effects` | `true` | Removes unused parts of stock exhaust effects the pack borrows. Saves memory, changes nothing you see. Turn it off if exhaust effects go missing. |
 | `Off-boresight ring` | `HUD` | `true` | Draws a crossed circle over the target while a Meridian heat seeker can still be launched at it, on wide shots where the usual cue is in the middle of the screen. |
 | `Livery on mounts` | `Appearance` | `true` | Paints Meridian pylons and racks in the aircraft's livery colour, the way stock drop tanks and rocket pods are painted. The weapons themselves keep their own finish. |
 

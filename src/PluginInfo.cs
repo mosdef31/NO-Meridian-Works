@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace MeridianWorks
@@ -90,15 +90,44 @@ namespace MeridianWorks
             new Weapon("GBP-500 Bodkin",  "MeridianGBP500", "GBP-500 Bodkin",  new[] {
                                  "single", "internal", "x2", "internalx2",
                                  "internalx4", "internalx6", "internalx6_flat", "internalx18",
-                                 "internalx18_tight" }, 0.189f),
+                                 "internalx9", "internalx18_tight" }, 0.189f),
 
-            new Weapon("Screamer",    "MeridianScreamer",  "Screamer",    new[] { "single" }, 0.0999f),
+            new Weapon("AAM-90 Estoc", "MeridianScreamer", "AAM-90 Estoc", new[] {
+                                 "single", "internal", "internalx2", "internalx6",
+                                 "internalx4" }, 0.0999f),
 
-            new Weapon("AIM-120C",    "MeridianAMRAAM",    "AIM-120C",    new[] {
+            new Weapon("AAM-120C",    "MeridianAMRAAM",    "AAM-120C",    new[] {
+                                 "single", "double", "triple", "internal",
+                                 "internalx2", "internalx3", "internalx4", "internalx6",
+                                 "internalx8" }, 0.080f),
+
+            new Weapon("AShM-140 Exocet", "MeridianExocetAir", "AShM-140 Exocet", new[] {
                                  "single", "internal", "internalx2", "internalx3",
-                                 "internalx4", "internalx6", "internalx8" }, 0.080f),
+                                 "internalx4" }, 0.189f),
 
-            new Weapon("Exocet AM39", "MeridianExocetAir", "Exocet AM39", new[] { "single" }, 0.189f),
+            new Weapon("AShM-500 Yashma", "MeridianYashma", "AShM-500 Yashma",
+                       new[] {
+                                 "single", "internalx2", "internalx5", "internalx3",
+                                 "internalx4" }, 0.2491f),
+
+            new Weapon("AGM-102 Kalibr", "MeridianKalibr", "AGM-102 Kalibr",
+                       new[] {
+                                 "single", "internal", "internalx2_lifted", "internalx4_lifted",
+                                 "internalx5", "internalx2", "internalx4" }, 0.2529f),
+            new Weapon("AGM-102E Kalibr", "MeridianKalibrEW", "AGM-102E Kalibr",
+                       new[] {
+                                 "single", "internal", "internalx2_lifted", "internalx4_lifted",
+                                 "internalx5", "internalx2", "internalx4" }, 0.2529f),
+
+            new Weapon("AGM-190A Black Arrow", "MeridianBlackArrow", "AGM-190A Black Arrow",
+                       new[] {
+                                 "single", "x2", "quad", "internal", "internalx2",
+                                 "internalx4", "internalx3", "internalx2_stack",
+                                 "internalx2_tandem", "internalx2_tandem_tight",
+                                 "internalx4_tandem_tight",
+                                 "internalx4_stack",
+                                 "internalx9_flat", "internalx9_stack",
+                                 "internalx18", "internalx10" }, 0.1125f),
         };
 
         internal static readonly string[] ArchivedMountKeys =
@@ -124,6 +153,8 @@ namespace MeridianWorks
             "MeridianGBP500_x2",
             "MeridianAMRAAM_internalx4",
             "MeridianAMRAAM_internalx6",
+            "MeridianYashma_internalx2",
+            "MeridianExocetAir_internal",
         };
 
         internal static readonly string[] UnderStubMountKeys =
@@ -167,6 +198,14 @@ namespace MeridianWorks
             return false;
         }
 
+        internal static bool IsRound(string? definitionKey, string authoredKey)
+        {
+            if (string.IsNullOrEmpty(definitionKey)) return false;
+            string k = definitionKey!.Trim();
+            return string.Equals(k, authoredKey, StringComparison.Ordinal)
+                || string.Equals(k, authoredKey + "_Missile", StringComparison.Ordinal);
+        }
+
         internal static Weapon? WeaponForMountKey(string? key)
         {
             if (string.IsNullOrEmpty(key)) return null;
@@ -201,7 +240,14 @@ namespace MeridianWorks
             { "MeridianScreamer_Missile", 160f },
             { "MeridianAMRAAM_Missile", 150f },
             { "MeridianExocetAir_Missile", 60f },
+            { "MeridianYashma_Missile", 30f },
+
+            { "MeridianKalibr_Missile", 12f },
+            { "MeridianKalibrEW_Missile", 12f },
+            { "MeridianBlackArrow_Missile", 15f },
         };
+
+        internal static readonly bool EnableCameraOpaqueTexture = true;
 
         internal static int ExpectedMountCount
         {

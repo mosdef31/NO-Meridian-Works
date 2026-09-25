@@ -40,6 +40,26 @@ terms applies to it, no rights in it are passed on, and it is not offered for re
 source `.blend` and its texture set are not published anywhere in this project. All
 rights in the model remain with lash2145.
 
+## The Yashma's BrahMos donor is CC BY 4.0 and the credit is required
+
+The AShM-500 Yashma's airframe is built on the **BrahMos Supersonic Missile** model,
+published on Sketchfab under **CC BY 4.0**, which permits commercial and
+non-commercial reuse and modification and **requires attribution**:
+
+https://sketchfab.com/3d-models/brahmos-supersonic-missile-ee0f596a29fd43f9860a3037ddc750e2
+
+The model has been rescaled from its own 16.83 m to this round's 6.000 m spec length,
+rolled 45 degrees about its long axis, and re-materialled. Those are modifications and
+CC BY 4.0 permits them; the credit above is the condition and it stands whether or not
+the mesh is recognisable in the result.
+
+This is **not** a carve-out like the Exocet's. CC BY 4.0 is compatible with this pack's
+own CC BY 4.0 grant, so the donor travels with the pack under the same terms. It is
+listed separately only because the attribution is owed to a different author.
+
+The `exahust_cover` mesh seated on the tail of the same round is **not** part of the
+donor. It is original work by **[mosdef31](https://github.com/mosdef31)**.
+
 ## Everything else
 
 The weapon data and source code are original work by
@@ -50,6 +70,23 @@ before running it. Being readable is not a grant: it is not open source, and no
 licence to reuse it is given here.
 
 ---
+
+## The Kalibr donor is CC BY 4.0 and the credit is required
+
+The Kalibr round's airframe is built on **Sizzler SS-N-27 Kalibr 3M-54**, by **mmickel**,
+published on Sketchfab under **CC Attribution** (CC BY 4.0), which permits commercial and
+non-commercial reuse and modification and **requires attribution**:
+
+https://sketchfab.com/3d-models/sizzler-ss-n-27-kalibr-3m-54-63fc0ac8032c42e3bfd3e548192d5a9c
+
+Licence verified against the model page on 2026-09-20, before the first export, which is
+the condition `docs/KALIBR-SPEC.md` set as blocking. The owner re-rigged the round with a
+folding wing, folding fins, wing-bay hatches and a separable booster, and split the jet
+sustainer out as its own mesh; the donor is rescaled by nothing, because it already
+measures true size. Those are modifications and CC BY 4.0 permits them.
+
+This is **not** a carve-out like the Exocet's. CC BY 4.0 is compatible with this pack's
+own CC BY 4.0 grant, so the donor travels with the pack under the same terms.
 
 ## Verified 2026-09-07: every donor is CC BY, and the authors are named
 
@@ -123,6 +160,7 @@ Authors are in the verified table above. All CC BY 4.0.
 | Screamer | AIM-160A Screamer, by Peter Primini (Planetrix23) | Sketchfab, CC BY 4.0 |
 | AIM-120C | AIM-120C AMRAAM, by Jeyhun1985 | Sketchfab, CC Attribution |
 | Exocet AM39 | Exocet MM40 Block 3C, by lash2145 | CGTrader, see the section above |
+| Kalibr | Sizzler SS-N-27 Kalibr 3M-54, by mmickel | https://sketchfab.com/3d-models/sizzler-ss-n-27-kalibr-3m-54-63fc0ac8032c42e3bfd3e548192d5a9c |
 
 **Russian weapon pack**, covering the five rounds above:
 https://sketchfab.com/3d-models/russian-weapon-pack-af00b7135a184ecfb2812a0e54458a8a

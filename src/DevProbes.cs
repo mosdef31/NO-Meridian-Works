@@ -172,7 +172,7 @@ namespace MeridianWorks
     {
 
         private const float SampleInterval = 0.25f;
-        private const int MaxSamples = 60;
+        private const int MaxSamples = 120;
 
         private static readonly FieldInfo? FHasLock =
             AccessTools.Field(AccessTools.TypeByName("LaserSeeker"), "hasLock");
@@ -300,9 +300,11 @@ namespace MeridianWorks
             bool ground = Physics.Raycast(p, Vector3.down, out RaycastHit hit, 3000f,
                                           PhysicsLayers.StaticsMask);
 
+            float pitchDeg = Mathf.Asin(Mathf.Clamp(m.transform.forward.y, -1f, 1f)) * Mathf.Rad2Deg;
+
             Plugin.Diag(
                 $"[Meridian] SHOT {_key} t+{Time.time - _born:0.0}s: speed {(m.rb != null ? m.rb.velocity.magnitude : 0f):0} m/s " +
-                $"alt {alt:0} m  nose·vel {(m.rb != null && m.rb.velocity.sqrMagnitude > 1f ? Vector3.Dot(m.transform.forward, m.rb.velocity.normalized) : 0f):0.00} " +
+                $"alt {alt:0} m  pitch {pitchDeg:0.0} deg  nose·vel {(m.rb != null && m.rb.velocity.sqrMagnitude > 1f ? Vector3.Dot(m.transform.forward, m.rb.velocity.normalized) : 0f):0.00} " +
                 $"tangible={m.IsTangible()} " +
                 (ground ? $"ground {hit.distance:0} m below ('{hit.collider.name}')" : "NO STATIC COLLIDER BELOW") +
                 SeekerState(m));
