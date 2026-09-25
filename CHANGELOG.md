@@ -41,8 +41,8 @@ rather than overflown.
 - New carriage on the Darkreach, the F-22E Strike Raptor, the FS-3, the FS-41 and the
   AB-4's fore and aft bays.
 - The GBP-500 Bodkin gains a nine-round bay block.
-- More wing options for the Black Arrow on the A-19, the T/A-30 and the F-22E, and the
-  F-22E's wings now take the AAM-41, AAM-63 and AAM-120C singly or in pairs and triples.
+- Adds compatibility with the F-22E Strike Raptor: the pack's rounds go in its bays and on
+  its wings.
 - The PAB-125HD is offered in every fitting and on every hardpoint the PAB-125 is, bays
   included, instead of only as a triple on external pylons.
 
@@ -60,8 +60,11 @@ add nothing, the same as the base game's own bay mounts.
 - A boost and sustain motor draws one continuous plume, not a flame that lights, cuts and
   lights again.
 - Every motor has a sound.
-- Three new switches under **Effects** in the config file: the ribbon smoke trail, the
-  game's own heat haze, and a cleanup of unused borrowed effect parts. All on by default.
+
+### Multiplayer
+
+- Rounds fired by a player who is not hosting now fly under power and guide. Before, a
+  client's Meridian rounds left the rail and coasted with no thrust.
 
 ### Handling and balance
 

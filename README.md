@@ -149,7 +149,7 @@ you fly.
 | GBO-900 | single | single |
 | AGM-92 | single | single |
 | GBP-500 Bodkin | single | single, twin, six-round, nine-round, eighteen-round |
-| AAM-90 Estoc | single | single, twin, six-round |
+| AAM-90 Estoc | single, twin | single, twin, six-round |
 | AAM-120C | single, twin, three-round | single, twin, three-round, eight-round |
 | AShM-140 Exocet | single | three-round, four-round |
 | AShM-500 Yashma | single | three-round, four-round, five-round |
@@ -212,14 +212,11 @@ higher number than this release does.
 
 ## Settings
 
-Six settings, in `BepInEx/config/com.meridianworks.cfg`.
+Three settings, in `BepInEx/config/com.meridianworks.cfg`.
 
 | Setting | Section | Default | What it does |
 |---|---|---|---|
-| `Diagnostics` | `Meridian Works` | `false` | Writes detailed lines to the BepInEx log describing how each Meridian store is assembled and mounted. |
-| `Ribbon smoke trail` | `Effects` | `true` | Draws missile smoke as one connected ribbon, the way the game's own missiles do. Off gives a trail of separate puffs. |
-| `Borrow the game heat haze` | `Effects` | `true` | Draws exhaust heat haze with the game's own distortion. Off uses the pack's own haze, which can look like flat pale sheets on some scenes. |
-| `Sweep inert borrowed effects` | `Effects` | `true` | Removes unused parts of stock exhaust effects the pack borrows. Saves memory, changes nothing you see. Turn it off if exhaust effects go missing. |
+| `Diagnostics` | `Diagnostics` | `false` | Writes detailed lines to the BepInEx log describing how each Meridian store is assembled and mounted. |
 | `Off-boresight ring` | `HUD` | `true` | Draws a crossed circle over the target while a Meridian heat seeker can still be launched at it, on wide shots where the usual cue is in the middle of the screen. |
 | `Livery on mounts` | `Appearance` | `true` | Paints Meridian pylons and racks in the aircraft's livery colour, the way stock drop tanks and rocket pods are painted. The weapons themselves keep their own finish. |
 

@@ -93,8 +93,8 @@ namespace MeridianWorks
                                  "internalx9", "internalx18_tight" }, 0.189f),
 
             new Weapon("AAM-90 Estoc", "MeridianScreamer", "AAM-90 Estoc", new[] {
-                                 "single", "internal", "internalx2", "internalx6",
-                                 "internalx4" }, 0.0999f),
+                                 "single", "double", "internal", "internalx2",
+                                 "internalx6", "internalx4" }, 0.0999f),
 
             new Weapon("AAM-120C",    "MeridianAMRAAM",    "AAM-120C",    new[] {
                                  "single", "double", "triple", "internal",
@@ -121,13 +121,10 @@ namespace MeridianWorks
 
             new Weapon("AGM-190A Black Arrow", "MeridianBlackArrow", "AGM-190A Black Arrow",
                        new[] {
-                                 "single", "x2", "quad", "internal", "internalx2",
-                                 "internalx4", "internalx3", "internalx2_stack",
-                                 "internalx2_tandem", "internalx2_tandem_tight",
-                                 "internalx4_tandem_tight",
-                                 "internalx4_stack",
-                                 "internalx9_flat", "internalx9_stack",
-                                 "internalx18", "internalx10" }, 0.1125f),
+                                 "single", "x2", "quad", "internal",
+                                 "internalx2", "internalx4", "internalx2_stack", "internalx2_tandem",
+                                 "internalx2_tandem_tight", "internalx4_tandem_tight", "internalx3", "internalx4_stack",
+                                 "internalx9_flat", "internalx9_stack", "internalx18", "internalx10" }, 0.1125f),
         };
 
         internal static readonly string[] ArchivedMountKeys =
