@@ -39,6 +39,8 @@ namespace MeridianWorks
                 if (m.definition is not MissileDefinition def) return true;
                 if (!PluginInfo.IsOurMissileKey(def.jsonKey)) return true;
 
+                if (def.jsonKey == Aam54Endurance.Key) return true;
+
                 if (FTargetUnit.GetValue(__instance) is Unit u && u != null) return true;
 
                 if (m.timeSinceSpawn >= FloorSeconds) return true;

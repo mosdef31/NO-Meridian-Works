@@ -35,6 +35,7 @@ Anticipate more additions as the pack grows.
 | AGM-102 Kalibr | Programmed route | 300 km | 1500 | 700 | 1200 kg | $3.4m | Deep strike |
 | AGM-102E Kalibr | Programmed route, jammer | 300 km | 300 | 180 | 1200 kg | $4.5m | Salvo lead |
 | AGM-190A Black Arrow | Programmed route | 250 km | 210 | 40 | 91 kg | $250k | Cheap mass strike |
+| ARAD-120 | Radar homing | 150 km | 0 | 70 | 420 kg | $1.5m | Long range SEAD |
 
 - **AGM-84 Warhawk:** locked on before release and needs nothing from you afterwards. A
   datalink keeps the aimpoint fresh, so you can shoot from further out than you can
@@ -64,10 +65,33 @@ Anticipate more additions as the pack grows.
 - **AGM-190A Black Arrow:** a small, cheap cruise missile carried in numbers. It flies low
   on a small jet, then climbs to pick out its target and dives on it. It hangs singly, in
   pairs and four to a rack, and up to eighteen at a time in the largest bays.
+- **ARAD-120:** homes on enemy radar from very long range. It sustains for nearly a
+  minute, so it can be fired from outside the reach of the radar it is hunting.
 
 Cruise missiles follow every waypoint you draw on the map, in order.
 
 The laser rounds need the target lit until impact. That is the trade.
+
+### HSM-160 family
+
+| Weapon | Guidance | Range | Payload | Mass | Cost | Doctrine |
+|---|---|---|---|---|---|---|
+| HSM-160 Kickback | Inertial, radar terminal | 200 km | 6000 AP, 300 HE | 1200 kg | $6m | Anti ship, hardened targets |
+| HSM-160C Scatter | Inertial, radar terminal | 200 km | 6 Needle darts | 1200 kg | $7m | Ship groups, dispersed targets |
+| HSM-160N Longshot | Inertial | 200 km | 300 kt | 1200 kg | $50m | Strategic strike |
+| HSM-160M Hailstorm | Inertial, radar terminal | 200 km | 4 nuclear darts, 5 kt each | 1200 kg | $80m | Event content |
+
+- **HSM-160 Kickback:** a two-stage anti ship missile. The booster throws it onto a high
+  arc and falls away, then the second stage lights on the way down and it dives onto the
+  target at close to Mach 5. Works against land targets too.
+- **HSM-160C Scatter:** the same flight, but it opens over the target and releases six
+  Needle darts that each pick their own target and strike it directly.
+- **HSM-160N Longshot:** a single strategic warhead. It needs a mission that allows
+  strategic weapons.
+- **HSM-160M Hailstorm:** releases four nuclear darts. It is event content and only
+  appears in missions that allow it.
+
+The darts have their own encyclopedia pages.
 
 ### Bombs
 
@@ -86,9 +110,11 @@ The laser rounds need the target lit until impact. That is the trade.
 
 | Weapon | Guidance | Range | Warhead | Mass | Cost | Doctrine |
 |---|---|---|---|---|---|---|
-| AAM-41 Gram | Active radar | 100 km | 26 | 240 kg | $2.3m | high-end BVR |
+| AAM-41 Gram | Active radar | 160 km | 26 | 281 kg | $2.8m | high-end BVR |
+| AAM-54 Phoenix | Active radar | 130 km | 60 | 450 kg | $3.5m | Anti bomber |
 | AAM-63 Falchion | Active radar | 60 km | 22 | 190 kg | $1.6m | Workhorse BVR |
 | IRM-L7 | Heat | 25 km | 40 | 245 kg | $1.5m | Ambush tactics |
+| SRM-20 Merlin | Heat | 15 km | 12 | 88 kg | $700k | Medium range heat seeker |
 | SRM-8 Kukri | Heat | 6.5 km | 7 | 55 kg | $420k | Merge and dog fighting |
 | AAM-90 Estoc | Active radar | 50 km | 16 | 110 kg | $1.45m | Hypersonic BVR |
 | AAM-120C | Active radar | 35 km | 18 | 155 kg | $800k | Cheap mass BVR |
@@ -96,8 +122,13 @@ The laser rounds need the target lit until impact. That is the trade.
 
 - **AAM-41 Gram:** the long one. Its own radar takes over at the end, so you can turn
   away once it is on its way.
+- **AAM-54 Phoenix:** a heavy long range missile built to bring down large aircraft. A
+  long burn carries it high and it falls onto bombers and transports from above. It
+  trades agility for reach, and it keeps flying through a brief loss of track.
 - **AAM-63 Falchion:** shorter and cheaper than the Gram, and quicker off the rail.
 - **IRM-L7:** a heat seeker with a long burn, for shots further out than a dogfight.
+- **SRM-20 Merlin:** a fast heat seeker between a dogfight round and a medium range one.
+  It reaches well past a dogfight missile and still turns hard at the end.
 - **SRM-8 Kukri:** small, light and made for close in. Carry a lot of them.
 - **AAM-90 Estoc:** the fast one. A small warhead on a very large motor, uncapped, so it
   arrives before a large aircraft has time to turn beam on. It costs nearly as much as

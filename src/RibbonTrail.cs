@@ -26,6 +26,53 @@ namespace MeridianWorks
 
         private const float StockNozzleWidthFraction = 0.22f;
 
+        private const float StockSegmentMetres = 30f;
+
+        private static Texture2D? _profileTex;
+        private static Material? _roundRibbonMat;
+
+        private static Material RoundRibbonMaterial(Material stock)
+        {
+            if (_roundRibbonMat != null) return _roundRibbonMat;
+            try
+            {
+                const int W = 8, H = 128;
+                var tex = new Texture2D(W, H, TextureFormat.RGBA32, true)
+                {
+                    name = "MeridianSmokeProfile",
+                    wrapModeU = TextureWrapMode.Repeat,
+                    wrapModeV = TextureWrapMode.Clamp,
+                    filterMode = FilterMode.Bilinear,
+                };
+                var px = new Color32[W * H];
+                for (int y = 0; y < H; y++)
+                {
+
+                    float v = (y + 0.5f) / H - 0.5f;
+                    float a = 0.62f * Mathf.Exp(-(v / 0.22f) * (v / 0.22f));
+                    if (Mathf.Abs(v) > 0.47f) a = 0f;
+                    byte b = (byte)Mathf.RoundToInt(a * 255f);
+                    for (int x = 0; x < W; x++) px[y * W + x] = new Color32(255, 255, 255, b);
+                }
+                tex.SetPixels32(px);
+                tex.Apply(true, true);
+                _profileTex = tex;
+
+                var mat = new Material(stock) { name = stock.name + "_MeridianRound" };
+                if (mat.HasProperty("_BaseMap")) mat.SetTexture("_BaseMap", tex);
+                if (mat.HasProperty("_MainTex")) mat.SetTexture("_MainTex", tex);
+                _roundRibbonMat = mat;
+                Plugin.Log.LogInfo("[Meridian] Smoke ribbon v2: soft round profile, no per-segment puffs.");
+                return mat;
+            }
+            catch (Exception ex)
+            {
+                Plugin.Log.LogWarning($"[Meridian] Smoke ribbon v2 failed, stock texture kept: {ex.Message}");
+                _roundRibbonMat = stock;
+                return stock;
+            }
+        }
+
         private static readonly Type? TTrailEmitter = AccessTools.TypeByName("TrailEmitter");
 
         private static readonly FieldInfo? FTrailSystem = Field("trailSystem");
@@ -37,6 +84,7 @@ namespace MeridianWorks
         private static readonly FieldInfo? FEmitTransform = Field("emitTransform");
         private static readonly FieldInfo? FEmitDelay = Field("emitDelay");
         private static readonly FieldInfo? FEmitLifetime = Field("emitLifetime");
+        private static readonly FieldInfo? FOpacity = Field("opacity");
 
         private static FieldInfo? Field(string name) =>
             TTrailEmitter == null ? null : AccessTools.Field(TTrailEmitter, name);
@@ -61,7 +109,8 @@ namespace MeridianWorks
             Material source = renderer.sharedMaterial;
             if (stockRibbon != null)
             {
-                renderer.trailMaterial = stockRibbon;
+
+                renderer.trailMaterial = RoundRibbonMaterial(stockRibbon);
             }
             else if (source != null)
             {
@@ -111,6 +160,14 @@ namespace MeridianWorks
             catch (Exception) {  }
             float headKey = Mathf.Clamp(HeadFadeMetres / (topSpeed * nodeLife), 0.0005f, 0.0182f);
 
+            float step = topSpeed * Mathf.Max(Time.fixedDeltaTime, 0.005f);
+            float spacing = (Mathf.Floor(SegmentLength / step) + 1f) * step;
+            float varScale = Mathf.Clamp(spacing / StockSegmentMetres, 0.15f, 1f);
+            float scaleVar = ScaleVariation * varScale;
+            float opacityVar = OpacityVariation * varScale;
+            float widthComp = (1f - ScaleVariation * 0.5f) / (1f - scaleVar * 0.5f);
+            float opacityBase = (1f - OpacityVariation * 0.5f) / (1f - opacityVar * 0.5f);
+
             var trailAlpha = new Gradient();
             trailAlpha.SetKeys(
                 new[] { new GradientColorKey(Color.white, 0f),
@@ -157,7 +214,7 @@ namespace MeridianWorks
                 ? mid * Mathf.Max(size.size.Evaluate(1f), 1f)
                 : mid;
 
-            main.startSize = new ParticleSystem.MinMaxCurve(finalWidth * SmokeWidthMult);
+            main.startSize = new ParticleSystem.MinMaxCurve(finalWidth * SmokeWidthMult * widthComp);
 
             size.enabled = true;
             size.size = new ParticleSystem.MinMaxCurve(
@@ -179,8 +236,9 @@ namespace MeridianWorks
             FEmitTransform.SetValue(te, smoke.transform);
             FSegmentLength.SetValue(te, SegmentLength);
             FEmitFrequency?.SetValue(te, EmitFrequency);
-            FOpacityVariation?.SetValue(te, OpacityVariation);
-            FScaleVariation?.SetValue(te, ScaleVariation);
+            FOpacityVariation?.SetValue(te, opacityVar);
+            FScaleVariation?.SetValue(te, scaleVar);
+            FOpacity?.SetValue(te, Mathf.Min(opacityBase, 1f));
 
             FEmitDelay?.SetValue(te, 0f);
 

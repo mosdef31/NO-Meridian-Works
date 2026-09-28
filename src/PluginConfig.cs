@@ -18,6 +18,7 @@ namespace MeridianWorks
 
         internal static bool LiveryMounts => LiveryMountsEntry?.Value ?? true;
 
+
         internal static bool RibbonTrail => true;
         internal static bool HazeBorrow => true;
         internal static bool GhostSweep => true;
@@ -30,6 +31,7 @@ namespace MeridianWorks
             OffBoresightCueEntry = config.Bind("HUD", "Off-boresight ring", true);
 
             LiveryMountsEntry = config.Bind("Appearance", "Livery on mounts", true);
+
         }
     }
 }

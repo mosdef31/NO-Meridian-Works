@@ -42,6 +42,8 @@ namespace MeridianWorks
 
             "MeridianExocetAir_Missile",
 
+            "MeridianARAD200_Missile",
+
         };
 
         internal static void Apply(Missile ours)
@@ -1272,6 +1274,9 @@ namespace MeridianWorks
             { "MeridianKalibr_Missile", "ALM-C450;AGM-99;AShM-300" },
             { "MeridianKalibrEW_Missile", "ALM-C450;AGM-99;AShM-300" },
             { "MeridianBlackArrow_Missile", "ALM-C450;AGM-99;AShM-300" },
+            { "MeridianSRM20_Missile", "AAM-29;AAM-36;MMR-S3" },
+            { "MeridianARAD200_Missile", "ARAD-116;AAM-29" },
+            { "MeridianAAM54_Missile", "AAM-29;AAM-36;MMR-S3" },
         };
 
         private static void BorrowAudioOnly(Missile ours, object? motor, int stage)

@@ -93,6 +93,11 @@ namespace MeridianWorks
 
             ShaderRebind.Apply(_defs, _mounts);
 
+            foreach (MissileDefinition ndef in NeedleEncyclopedia.Build(enc))
+                if (!_extraDefs.Contains(ndef)) _extraDefs.Add(ndef);
+
+            EncyclopediaFit.Apply(AllOurMissiles());
+
             HazeOpaqueTexture.RunOnce();
 
             bool added = false;
@@ -112,6 +117,13 @@ namespace MeridianWorks
                 if (!PluginInfo.IsOurMissileKey(def.jsonKey)) continue;
                 if (ContainsMissile(enc, def)) continue;
                 enc.missiles.Add(def);
+                added = true;
+            }
+
+            foreach (MissileDefinition ndef in NeedleEncyclopedia.Definitions)
+            {
+                if (enc.missiles == null || ContainsMissile(enc, ndef)) continue;
+                enc.missiles.Add(ndef);
                 added = true;
             }
 

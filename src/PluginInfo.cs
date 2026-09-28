@@ -10,7 +10,7 @@ namespace MeridianWorks
         internal const string GUID = "com.meridianworks";
         internal const string Name = "Meridian Works";
 
-        internal const string Version = "1.1.0.0";
+        internal const string Version = "1.2.0.0";
 
         internal const string BlueprinterGUID = "com.nikkorap.blueprinter";
 
@@ -125,6 +125,34 @@ namespace MeridianWorks
                                  "internalx2", "internalx4", "internalx2_stack", "internalx2_tandem",
                                  "internalx2_tandem_tight", "internalx4_tandem_tight", "internalx3", "internalx4_stack",
                                  "internalx9_flat", "internalx9_stack", "internalx18", "internalx10" }, 0.1125f),
+
+            new Weapon("SRM-20 Merlin", "MeridianSRM20", "SRM-20 Merlin",
+                       new[] {
+                                 "single", "double", "triple", "internal",
+                                 "internalx2", "internalx3", "internalx4", "internalx6",
+                                 "internalx8" }, 0.085f),
+            new Weapon("ARAD-120", "MeridianARAD200", "ARAD-120",
+                       new[] {
+                                 "single", "double", "internal", "internalx2",
+                                 "internalx4" }, 0.1552f),
+
+            new Weapon("HSM-160",  "MeridianHSM160",   "HSM-160 Kickback",  new[] {
+                                 "single", "internal", "internalx2", "internalx3",
+                                 "internalx4", "internalx2_tandem", "internalx4_tandem" }, 0.2306f),
+            new Weapon("HSM-160N",  "MeridianHSM160N", "HSM-160N Longshot (300kt)",  new[] {
+                                 "single", "internal", "internalx2", "internalx3",
+                                 "internalx4", "internalx2_tandem", "internalx4_tandem" }, 0.2306f),
+
+            new Weapon("AAM-54 Phoenix", "MeridianAAM54", "AAM-54 Phoenix", new[] {
+                                 "single", "internal", "internalx2", "internalx2_tandem",
+                                 "internalx4" }, 0.19f),
+            new Weapon("HSM-160C",  "MeridianHSM160C",   "HSM-160C Scatter",  new[] {
+                                 "single", "internal", "internalx2", "internalx3",
+                                 "internalx4", "internalx2_tandem", "internalx4_tandem" }, 0.2306f),
+
+            new Weapon("HSM-160M",  "MeridianHSM160M", "HSM-160M Hailstorm (20kt)",  new[] {
+                                 "single", "internal", "internalx2", "internalx3",
+                                 "internalx4", "internalx2_tandem", "internalx4_tandem" }, 0.2306f),
         };
 
         internal static readonly string[] ArchivedMountKeys =
@@ -152,6 +180,7 @@ namespace MeridianWorks
             "MeridianAMRAAM_internalx6",
             "MeridianYashma_internalx2",
             "MeridianExocetAir_internal",
+            "MeridianHSM160N_single",
         };
 
         internal static readonly string[] UnderStubMountKeys =
@@ -242,6 +271,9 @@ namespace MeridianWorks
             { "MeridianKalibr_Missile", 12f },
             { "MeridianKalibrEW_Missile", 12f },
             { "MeridianBlackArrow_Missile", 15f },
+
+            { "MeridianSRM20_Missile", 110f },
+            { "MeridianARAD200_Missile", 22f },
         };
 
         internal static readonly bool EnableCameraOpaqueTexture = true;

@@ -25,6 +25,8 @@ namespace MeridianWorks
             "guidanceDelay", "loftAmount",
 
             "gLimit",
+
+            "topAttack.Amount", "topAttack.minRange", "topAttack.maxRange",
         };
 
         internal static void ApplyIfPresent(IEnumerable<MissileDefinition> definitions)
@@ -84,7 +86,23 @@ namespace MeridianWorks
                 return;
             }
 
-            foreach (object target in Targets(missile))
+            const string TopAttackPrefix = "topAttack.";
+            IEnumerable<object> targets = Targets(missile);
+            if (field.StartsWith(TopAttackPrefix, StringComparison.Ordinal))
+            {
+                object? seeker = missile.GetComponent<MissileSeeker>();
+                object? topAttack = seeker == null ? null
+                    : AccessTools.Field(seeker.GetType(), "topAttack")?.GetValue(seeker);
+                if (topAttack == null)
+                {
+                    Plugin.Log.LogWarning($"[Meridian] {key}: no topAttack block on its seeker, '{field}' ignored.");
+                    return;
+                }
+                targets = new[] { topAttack };
+                field = field.Substring(TopAttackPrefix.Length);
+            }
+
+            foreach (object target in targets)
             {
                 FieldInfo? f = AccessTools.Field(target.GetType(), field);
                 if (f == null || (f.FieldType != typeof(float) && f.FieldType != typeof(int))) continue;

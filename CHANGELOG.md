@@ -1,5 +1,41 @@
 # Changelog
 
+## 1.2.0
+
+**Seven new rounds, four of them one two-stage hypersonic family, and more ways to
+carry what was already here.** Everything below is what changed since 1.1.0.
+
+### New rounds
+
+- **AAM-54 Phoenix.** A heavy long-range radar-guided missile built to bring down large
+  aircraft. A long burn carries it high and it falls onto bombers and transports from
+  above. It trades agility for reach, and it keeps flying through a brief loss of track.
+- **SRM-20 Merlin.** A fast heat-seeking missile between a dogfight round and a
+  medium-range one. It reaches well past a dogfight missile and still turns hard at the
+  end. Singles, side-by-side pairs, a three-round rack, and bay blocks.
+- **ARAD-120.** Homes on enemy radar from very long range. It sustains for nearly a
+  minute, so it can be fired from outside the reach of the radar it is hunting.
+- **HSM-160 Kickback.** A two-stage anti-ship missile. The booster throws it onto a high
+  arc and falls away, then the second stage lights on the way down and it dives onto the
+  target at close to Mach 5. Works against land targets too.
+- **HSM-160C Scatter**, **HSM-160M Hailstorm** and **HSM-160N Longshot.** The same flight
+  with a different payload. Scatter opens and releases six Needle darts that each pick
+  their own target and strike it directly. Hailstorm releases four nuclear darts.
+  Longshot is a single strategic warhead. The darts have their own encyclopedia pages.
+- **The Hailstorm is event content.** It only appears in missions that allow event
+  content. The Longshot is a strategic weapon and needs a mission that allows those.
+
+Prices: Kickback 6M, Scatter 7M, Longshot 50M, Hailstorm 80M.
+
+### Other changes
+
+- The AAM-41 Gram reaches further.
+- The SRM-8 Kukri, IRM-L7 and AGM-33L now reach the ranges their pages list.
+- Racks and pylons have a new finish, and rounds on rails and hooks sit in proper
+  hangers and lugs.
+- Rounds now sit correctly on the encyclopedia display instead of sinking into it or
+  floating above it.
+
 ## 1.1.0
 
 **Seven new rounds, new aircraft to carry them, real motor effects, and stores that cost

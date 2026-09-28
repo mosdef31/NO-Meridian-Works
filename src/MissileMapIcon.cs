@@ -112,4 +112,36 @@ namespace MeridianWorks
             return _sprite;
         }
     }
+
+    [HarmonyPatch(typeof(UnitMapIcon), nameof(UnitMapIcon.UpdateIcon))]
+    internal static class UnitMapIcon_UpdateIcon_NuclearDartScale
+    {
+
+        private const float ScaleFactor = 2.2f;
+        private static bool _logged;
+
+        [HarmonyPostfix]
+        private static void Postfix(UnitMapIcon __instance)
+        {
+            try
+            {
+                Unit? u = __instance.unit;
+                if (u is not Missile m) return;
+                if (HSM160Submunition.ParentKey(m) != HSM160Submunition.NuclearDispenserKey) return;
+                if (__instance.iconImage == null) return;
+
+                __instance.iconImage.transform.localScale *= ScaleFactor;
+
+                if (!_logged)
+                {
+                    _logged = true;
+                    Plugin.Log.LogInfo($"[Meridian] SD-6N map icon scaled {ScaleFactor:0.#}x over the stock mark.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Plugin.Log.LogWarning($"[Meridian] SD-6N map icon scale failed: {ex.Message}");
+            }
+        }
+    }
 }

@@ -10,7 +10,7 @@ namespace MeridianWorks
 
         private const string Key = "MeridianAAM41";
 
-        private const float CloseRangeMetres = 25000f;
+        private const float CloseRangeMetres = 50000f;
 
         private const float CloseAngleDeg = 30f;
 

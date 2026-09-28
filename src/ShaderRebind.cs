@@ -115,6 +115,7 @@ namespace MeridianWorks
         private const int DistortionQueue = 2975;
 
         private static bool _saidKeywordsWereLost;
+        private static int _hdrEmissionFixed;
         private static bool _saidQueueWasLost;
 
         private static void ReassertKeywords(Material m)
@@ -128,6 +129,20 @@ namespace MeridianWorks
 
                 if (Has(m, "_EmissionEnabled") && m.GetFloat("_EmissionEnabled") > 0.5f)
                     lost |= Need(m, "_EMISSION");
+
+                if (m.name.StartsWith("M_", StringComparison.Ordinal)
+                    && !m.IsKeywordEnabled("_EMISSION") && Has(m, "_EmissionColor")
+                    && m.shader != null && m.shader.name.IndexOf("Particles", StringComparison.Ordinal) >= 0)
+                {
+                    Color e = m.GetColor("_EmissionColor");
+                    if (Mathf.Max(e.r, Mathf.Max(e.g, e.b)) > 1f)
+                    {
+                        m.EnableKeyword("_EMISSION");
+                        _hdrEmissionFixed++;
+                        if (_hdrEmissionFixed == 1)
+                            Plugin.Log.LogInfo($"[Meridian] Flame HDR emission keyword restored (first: {m.name}).");
+                    }
+                }
 
                 if (Has(m, "_FlipbookBlending") && m.GetFloat("_FlipbookBlending") > 0.5f)
                     lost |= Need(m, "_FLIPBOOKBLENDING_ON");
