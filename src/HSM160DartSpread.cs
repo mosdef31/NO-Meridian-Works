@@ -32,6 +32,8 @@ namespace MeridianWorks
             int curN = On(current) - 1;
             if (curN <= CoveredN) return null;
 
+            if (current == st.Main && HSM160Dart.DartsOnUnit(current) <= 1) return null;
+
             float cosCone = Mathf.Cos(ConeDeg * Mathf.Deg2Rad);
             Vector3 fwd = vel / speed;
             bool wantShip = current is Ship;

@@ -38,6 +38,7 @@ namespace MeridianWorks
                 GameObject dart = UnityEngine.Object.Instantiate(prefab, __instance.transform, false);
                 dart.transform.localPosition = Vector3.zero;
                 dart.transform.localRotation = Quaternion.identity;
+                dart.transform.localScale = Vector3.one * HSM160Stow.Scale(parentKey!);
                 dart.AddComponent<DartPop>();
 
                 if (!_logged)
@@ -87,7 +88,7 @@ namespace MeridianWorks
             FInfo.SetValue(m, _renamed);
         }
 
-        private static GameObject? Prefab(bool nuclear)
+        internal static GameObject? Prefab(bool nuclear)
         {
             if (!_looked)
             {

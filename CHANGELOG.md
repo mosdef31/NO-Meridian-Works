@@ -1,5 +1,38 @@
 # Changelog
 
+## 1.2.1
+
+**A smoother HSM-160, a new look for the Falchion, and more bays for the Phoenix and
+the Merlin.** Everything below is what changed since 1.2.0.
+
+### HSM-160 family
+
+- The HSM-160 no longer rocks up and down on its way to the target.
+- After the darts are released, the empty carrier stays in the sky. It loses control,
+  tumbles and falls.
+- The darts are now visible folded inside the open bay as they are released.
+- Air defences now give the HSM-160 rounds and the SD-6 darts full priority as
+  targets.
+- The SD-6 darts now have a bigger map icon.
+
+### Carriage
+
+- **AAM-54 Phoenix:** single rounds in the KR-67's forward and rear bays, the FS-3's
+  bays and the FS-41's forward bay.
+- **SRM-20 Merlin:** single rounds in the KR-67's side bays.
+- The AAM-63 triple rack no longer goes on the FS-41's wing glove.
+- Rounds on the FS-41's wing glove now hang under the glove instead of inside it.
+
+### Other changes
+
+- **AAM-63 Falchion:** new model and textures, and the motor glow no longer lights up
+  the fin roots.
+- **Yashma:** against ground targets it pops up before the dive. Against ships it stays
+  low. Its description now gives its real top speed of Mach 3.
+- Weapon icons all face left.
+- The far missile trail no longer piles up in slow motion.
+- Better compatibility with the Loadout Injector mod.
+
 ## 1.2.0
 
 **Seven new rounds, four of them one two-stage hypersonic family, and more ways to

@@ -19,6 +19,7 @@ namespace MeridianWorks
         internal sealed class State
         {
             public Unit? Target;
+            public Unit? Main;
             public Transform? Part;
             public GlobalPosition Centre;
             public GlobalPosition KnownPos;
@@ -82,6 +83,7 @@ namespace MeridianWorks
             if (m.targetID.TryGetUnit(out Unit u))
             {
                 st.Target = u;
+                st.Main = u;
                 st.Centre = u.GlobalPosition();
                 st.KnownPos = st.Centre;
             }
@@ -109,10 +111,9 @@ namespace MeridianWorks
             {
                 st.Chosen = true;
 
-                if (st.Target is not Ship)
                 {
-                    Unit? ship = LeastTargetedShip(m, st.Centre);
-                    if (ship != null)
+                    Unit? ship = LeastTargetedShip(m, st.Centre, st.Main);
+                    if (ship != null && ship != st.Target)
                     {
                         st.Target = ship;
                         if (!_saidShip)
@@ -128,7 +129,7 @@ namespace MeridianWorks
 
             if (st.Target == null || st.Target.disabled)
             {
-                st.Target = LeastTargetedShip(m, st.Centre);
+                st.Target = LeastTargetedShip(m, st.Centre, st.Main);
                 Claim(st.Target);
                 st.Part = Part(st.Target);
                 st.Visual = false;
@@ -144,6 +145,7 @@ namespace MeridianWorks
                     if (spread != null)
                     {
                         st.Target = tgt = spread;
+                        Claim(spread);
                         st.Part = Part(tgt);
                         st.Visual = false;
                         st.Retargets++;
@@ -198,16 +200,19 @@ namespace MeridianWorks
             if (u != null) DartsOn.GetValue(u, _ => new StrongBox<int>(0)).Value++;
         }
 
-        private static Unit? LeastTargetedShip(Missile m, GlobalPosition centre)
+        internal static int DartsOnUnit(Unit u) => DartsOn.TryGetValue(u, out StrongBox<int> box) ? box.Value : 0;
+
+        private static Unit? LeastTargetedShip(Missile m, GlobalPosition centre, Unit? main)
         {
             Scratch.Clear();
             BattlefieldGrid.GetUnitsInRangeNonAlloc(centre, SpreadM, Scratch);
+            if (main != null && !main.disabled && !Scratch.Contains(main)) Scratch.Add(main);
             Unit? best = null;
             int bestN = int.MaxValue;
             float bestD = float.MaxValue;
             foreach (Unit u in Scratch)
             {
-                if (u is not Ship || u.disabled || u.NetworkHQ == m.NetworkHQ) continue;
+                if ((u is not Ship && u != main) || u.disabled || u.NetworkHQ == m.NetworkHQ) continue;
                 int n = DartsOn.TryGetValue(u, out StrongBox<int> box) ? box.Value : 0;
                 float d = FastMath.SquareDistance(u.GlobalPosition(), centre);
                 if (n < bestN || (n == bestN && d < bestD)) { best = u; bestN = n; bestD = d; }

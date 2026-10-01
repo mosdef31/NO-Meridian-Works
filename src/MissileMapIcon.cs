@@ -116,31 +116,67 @@ namespace MeridianWorks
     [HarmonyPatch(typeof(UnitMapIcon), nameof(UnitMapIcon.UpdateIcon))]
     internal static class UnitMapIcon_UpdateIcon_NuclearDartScale
     {
-
-        private const float ScaleFactor = 2.2f;
+        private const string MatchKey = "AGM1";
+        private const float Fallback = 0.5f;
+        private static float _agmSize = -1f;
+        private static Sprite? _agmSprite;
+        private static readonly System.Collections.Generic.HashSet<int> Darts = new();
         private static bool _logged;
 
+        private static float AgmSize()
+        {
+            if (_agmSize > 0f) return _agmSize;
+            float agm = 0f;
+            try
+            {
+                foreach (MissileDefinition d in Encyclopedia.i.missiles)
+                    if (d != null && d.jsonKey == MatchKey) { agm = d.mapIconSize; _agmSprite = d.mapIcon; break; }
+            }
+            catch (Exception) { }
+            _agmSize = agm > 0.001f ? agm : Fallback;
+            return _agmSize;
+        }
+
+        private static bool IsDart(Missile m)
+        {
+            int id = m.GetInstanceID();
+            if (Darts.Contains(id)) return true;
+            string? parent = HSM160Submunition.ParentKey(m);
+            bool dart = parent == HSM160Submunition.NuclearDispenserKey
+                || parent == HSM160Submunition.DispenserKey
+                || (string.Equals((m.definition as MissileDefinition)?.jsonKey?.Trim(), "submunition1", StringComparison.OrdinalIgnoreCase)
+                    && m.GetComponentInChildren<DartPop>(true) != null);
+            if (dart) Darts.Add(id);
+            return dart;
+        }
+
         [HarmonyPostfix]
-        private static void Postfix(UnitMapIcon __instance)
+        private static void Postfix(UnitMapIcon __instance, float mapInverseScale)
         {
             try
             {
                 Unit? u = __instance.unit;
                 if (u is not Missile m) return;
-                if (HSM160Submunition.ParentKey(m) != HSM160Submunition.NuclearDispenserKey) return;
+                if (!IsDart(m)) return;
                 if (__instance.iconImage == null) return;
 
-                __instance.iconImage.transform.localScale *= ScaleFactor;
+                float size = AgmSize();
+                float opt = SceneSingleton<MapOptions>.i != null ? SceneSingleton<MapOptions>.i.iconSize : 1f;
+                __instance.iconImage.transform.localScale = mapInverseScale * 15f * size * opt * Vector3.one;
+
+                if (_agmSprite != null && __instance.iconImage.sprite != _agmSprite
+                    && __instance.iconImage.sprite != GameAssets.i.missileWarningSprite)
+                    __instance.iconImage.sprite = _agmSprite;
 
                 if (!_logged)
                 {
                     _logged = true;
-                    Plugin.Log.LogInfo($"[Meridian] SD-6N map icon scaled {ScaleFactor:0.#}x over the stock mark.");
+                    Plugin.Log.LogInfo($"[Meridian] SD-6/SD-6N map icon set to the AGM-48's mapIconSize {size:0.##} (own {m.definition?.mapIconSize:0.##}).");
                 }
             }
             catch (Exception ex)
             {
-                Plugin.Log.LogWarning($"[Meridian] SD-6N map icon scale failed: {ex.Message}");
+                Plugin.Log.LogWarning($"[Meridian] SD-6 map icon scale failed: {ex.Message}");
             }
         }
     }

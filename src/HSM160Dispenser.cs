@@ -17,6 +17,8 @@ namespace MeridianWorks
         private static readonly FieldInfo? FMissile = AccessTools.Field(typeof(SubmunitionDispenser), "missile");
         private static readonly FieldInfo? FSubs = AccessTools.Field(typeof(SubmunitionDispenser), "submunitions");
         private static readonly FieldInfo? FEjectSpeed = AccessTools.Field(typeof(SubmunitionDispenser), "ejectSpeed");
+        private static readonly FieldInfo? FCasings = AccessTools.Field(typeof(SubmunitionDispenser), "casings");
+        private const float PetalGhostS = 1.0f;
 
         private static WeaponInfo? _stock;
         private static bool _said;
@@ -36,6 +38,7 @@ namespace MeridianWorks
                     return true;
 
                 float eject = FEjectSpeed?.GetValue(__instance) is float f ? f : 0f;
+                __instance.StartCoroutine(GhostPetals(__instance));
                 __instance.StartCoroutine(Release(m, key, type, subs, eject));
                 return false;
             }
@@ -70,6 +73,24 @@ namespace MeridianWorks
                 Plugin.Log.LogInfo($"[Meridian] {key}: dispenser submunition type filled from stock '{_stock.name}'.");
             }
             return true;
+        }
+
+        private static System.Collections.IEnumerator GhostPetals(SubmunitionDispenser d)
+        {
+            var off = new System.Collections.Generic.List<Collider>();
+            if (FCasings?.GetValue(d) is System.Collections.IEnumerable casings)
+            {
+                foreach (object o in casings)
+                {
+                    GameObject? go = o as GameObject ?? (o as Component)?.gameObject;
+                    if (go == null) continue;
+                    foreach (Collider c in go.GetComponentsInChildren<Collider>(true))
+                        if (c.enabled) { c.enabled = false; off.Add(c); }
+                }
+            }
+            yield return new WaitForSeconds(PetalGhostS);
+            foreach (Collider c in off)
+                if (c != null) c.enabled = true;
         }
 
         private static System.Collections.IEnumerator Release(Missile m, string key, WeaponInfo type, GameObject[] subs, float eject)
@@ -119,11 +140,7 @@ namespace MeridianWorks
             }
 
             yield return new WaitForSeconds(1f);
-            if (m != null && !m.disabled && m.IsServer)
-            {
-                m.Networkdisabled = true;
-                UnityEngine.Object.Destroy(m.gameObject, 5f);
-            }
+            if (m != null && !m.disabled) HSM160Spent.Begin(m, key);
         }
     }
 

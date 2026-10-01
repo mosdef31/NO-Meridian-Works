@@ -12,6 +12,8 @@ namespace MeridianWorks
     [BepInProcess("NuclearOption.exe")]
 
     [BepInDependency(PluginInfo.BlueprinterGUID)]
+
+    [BepInDependency(PluginInfo.LoadoutInjectorGUID, BepInDependency.DependencyFlags.SoftDependency)]
     public sealed class Plugin : BaseUnityPlugin
     {
         public static Plugin? Instance { get; private set; }

@@ -264,7 +264,7 @@ namespace MeridianWorks
             return 0.5f * (lo + hi);
         }
 
-        private const float LoftSwitchGain = 1.05f;
+        private const float LoftSwitchGain = 1.15f;
 
         private static bool BracketAndBisect(in PredictState seed, float holdS, float targetAltM,
             float targetRangeToGoM, bool preferLoft, float preferNearDeg, float loDeg, float hiDeg, in Physics ph, Missile m,
@@ -368,7 +368,11 @@ namespace MeridianWorks
         internal bool haveLaunchRange;
         internal float launchRangeM;
         internal float climbDeg;
+        internal float pendingClimbDeg = float.NaN;
+        internal float nextAttitudeTraceTime;
         internal bool haveSolve;
+        internal float rootLockUntil = -1f;
+        internal float filteredDeg = float.NaN;
         internal float commandDeg = float.NaN;
         internal float lastTickTime = -1f;
         internal float predictedMissM;
@@ -405,6 +409,20 @@ namespace MeridianWorks
 
         private const float BoostSlewDegS = 6f;
         private const float SteerSlewDegS = 8f;
+        private const float BoostOutlierDeg = 25f;
+        private const float BoostConfirmDeg = 10f;
+
+        private const float RootLockSeconds = 2f;
+        private const float SolveFilterSeconds = 0.6f;
+
+        private static bool RootLockAllows(HSM160TrajectoryState state, Missile m, float solvedDeg)
+        {
+            if (!state.haveSolve) return true;
+            if (Mathf.Abs(solvedDeg - state.climbDeg) <= BoostConfirmDeg) return true;
+            if (m.timeSinceSpawn < state.rootLockUntil) return false;
+            state.rootLockUntil = m.timeSinceSpawn + RootLockSeconds;
+            return true;
+        }
 
         private static float Slew(HSM160TrajectoryState state, Missile m, float rateDegS)
         {
@@ -412,7 +430,10 @@ namespace MeridianWorks
             float dt = state.lastTickTime >= 0f ? Mathf.Clamp(now - state.lastTickTime, 0f, 0.5f) : 0f;
             state.lastTickTime = now;
             if (float.IsNaN(state.commandDeg)) state.commandDeg = PitchDeg(m.rb.velocity);
-            state.commandDeg = Mathf.MoveTowards(state.commandDeg, state.climbDeg, rateDegS * dt);
+
+            if (float.IsNaN(state.filteredDeg)) state.filteredDeg = state.climbDeg;
+            state.filteredDeg += (state.climbDeg - state.filteredDeg) * (1f - Mathf.Exp(-dt / SolveFilterSeconds));
+            state.commandDeg = Mathf.MoveTowards(state.commandDeg, state.filteredDeg, rateDegS * dt);
             return state.commandDeg;
         }
 
@@ -532,14 +553,31 @@ namespace MeridianWorks
                                     m.rb.mass, range, bs, remainingBoostS, state.launchRangeM >= FarShotM, SolveAnchor(state),
                                     out float solvedClimb, out float solvedMiss))
                             {
-                                state.climbDeg = solvedClimb;
-                                state.haveSolve = true;
-                                state.predictedMissM = solvedMiss;
+
+                                bool jump = state.haveSolve && Mathf.Abs(solvedClimb - state.climbDeg) > BoostOutlierDeg;
+                                bool confirmed = !float.IsNaN(state.pendingClimbDeg)
+                                                 && Mathf.Abs(solvedClimb - state.pendingClimbDeg) <= BoostConfirmDeg;
+                                if (jump && !confirmed)
+                                {
+                                    state.pendingClimbDeg = solvedClimb;
+                                }
+                                else if (!RootLockAllows(state, m, solvedClimb))
+                                {
+                                    state.pendingClimbDeg = float.NaN;
+                                }
+                                else
+                                {
+                                    state.pendingClimbDeg = float.NaN;
+                                    state.climbDeg = solvedClimb;
+                                    state.haveSolve = true;
+                                    state.predictedMissM = solvedMiss;
+                                }
                             }
                         }
                     }
 
                     float cmd = Slew(state, m, BoostSlewDegS);
+                    HSM160AttitudeTrace.Sample(m, state, key, "boost", cmd);
                     if (state.logId >= 0 && m.timeSinceSpawn >= state.nextTraceTime)
                     {
                         state.nextTraceTime = m.timeSinceSpawn + TraceSeconds;
@@ -600,7 +638,8 @@ namespace MeridianWorks
                             if (HSM160BoostPlanner.SolveSteerNow(m, v.magnitude, PitchDeg(v), NoseHeadingDeg(m), pos.y, knownPos.y,
                                     m.rb.mass, range, stage2AlreadyLit: state.stage2Ignited, coastElapsedSoFarS: coastElapsedS,
                                     holdS: SteerHoldSeconds, preferLoft: state.launchRangeM >= FarShotM, preferNearDeg: SolveAnchor(state),
-                                    out float solvedSteer, out float solvedMiss))
+                                    out float solvedSteer, out float solvedMiss)
+                                && RootLockAllows(state, m, solvedSteer))
                             {
                                 state.climbDeg = solvedSteer;
                                 state.haveSolve = true;
@@ -608,6 +647,7 @@ namespace MeridianWorks
                             }
                         }
                         float cmd = Slew(state, m, SteerSlewDegS);
+                        HSM160AttitudeTrace.Sample(m, state, key, "coast", cmd);
                         Vector3 dir = Vector3.RotateTowards(hn, Vector3.up, cmd * Mathf.Deg2Rad, 0f);
                         aimpoint = pos + dir * 1000f;
                     }

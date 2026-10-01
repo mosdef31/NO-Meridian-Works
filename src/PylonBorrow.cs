@@ -241,7 +241,8 @@ namespace MeridianWorks
             if (existing.Count > 0 && !borrowedRack)
             {
 
-                bool underStub = PluginInfo.HangsUnderStub(mount.jsonKey);
+                bool underStub = PluginInfo.HangsUnderStub(mount.jsonKey)
+                                 || HangsUnderStubStation(hardpoint);
                 AuthoredMountStub.Mark(hardpoint, !underStub);
 
                 if (underStub) SeatUnderStub(hardpoint, mount, spawned.transform, existing);
@@ -1008,6 +1009,13 @@ namespace MeridianWorks
             root.GetComponentsInChildren<Renderer>(true)
                 .Where(r => r.GetComponentInParent<MountedMissile>() == null)
                 .ToList();
+
+        private static bool HangsUnderStubStation(Hardpoint? hardpoint)
+        {
+            for (Transform? t = hardpoint != null ? hardpoint.transform : null; t != null; t = t.parent)
+                if (t.name.StartsWith("Aryx_Interceptor1_LERX", StringComparison.Ordinal)) return true;
+            return false;
+        }
 
         private static string Where(Hardpoint? hardpoint) =>
             hardpoint?.transform != null ? hardpoint.transform.root.name : "unknown airframe";

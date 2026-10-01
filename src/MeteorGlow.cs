@@ -70,15 +70,29 @@ namespace MeridianWorks
                 Vector3 now = transform.position.ToGlobalPosition().AsVector3();
                 if (!_haveLast || Heat <= 0.01f) { _lastGlobal = now; _haveLast = true; return; }
 
+                float spacing = Mathf.Max(_spacingM, 0.25f);
                 float step = Vector3.Distance(now, _lastGlobal);
-                int n = Mathf.Clamp(Mathf.CeilToInt(step / Mathf.Max(_spacingM, 0.25f)), 1, MaxSubSteps);
+                int n = Mathf.FloorToInt(step / spacing);
+                if (n <= 0) return;
                 var ep = new ParticleSystem.EmitParams { applyShapeToPosition = false, velocity = Vector3.zero };
+                Vector3 dir = (now - _lastGlobal) / step;
+                if (n > MaxSubSteps)
+                {
+
+                    for (int i = 1; i <= MaxSubSteps; i++)
+                    {
+                        ep.position = Vector3.Lerp(_lastGlobal, now, (float)i / MaxSubSteps);
+                        _tail!.Emit(ep, 1);
+                    }
+                    _lastGlobal = now;
+                    return;
+                }
                 for (int i = 1; i <= n; i++)
                 {
-                    ep.position = Vector3.Lerp(_lastGlobal, now, (float)i / n);
+                    ep.position = _lastGlobal + dir * (spacing * i);
                     _tail!.Emit(ep, 1);
                 }
-                _lastGlobal = now;
+                _lastGlobal += dir * (spacing * n);
             }
             catch (Exception e) { Fail(e); }
         }

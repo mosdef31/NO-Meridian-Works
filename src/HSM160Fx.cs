@@ -145,7 +145,7 @@ namespace MeridianWorks
         private void Update()
         {
             Missile? m = _missile;
-            if (m == null || m.disabled) { enabled = false; return; }
+            if (m == null || m.disabled) { KillGlow(); enabled = false; return; }
 
             try
             {
@@ -186,16 +186,19 @@ namespace MeridianWorks
 
         private void ApplyGlow(float mach)
         {
-            float k = Smooth(GlowOffMach, GlowFullMach, mach);
+
+            float speedK = Smooth(GlowOffMach, GlowFullMach, mach);
+            float k = Mathf.Clamp01(speedK * (1f + 0.5f * SpentBoost));
+            float spent = 1f + SpentRateGain * SpentBoost * speedK;
             bool on = k > 0.01f;
             Color tint = Color.Lerp(GlowCold, GlowHot, k);
             foreach (Glow g in _glow)
             {
                 if (g.Ps == null) continue;
                 ParticleSystem.EmissionModule em = g.Ps.emission;
-                em.rateOverTimeMultiplier = g.Rate * Mathf.Lerp(0.5f, GlowRateHot, k);
+                em.rateOverTimeMultiplier = g.Rate * Mathf.Lerp(0.5f, GlowRateHot, k) * spent;
                 ParticleSystem.MainModule main = g.Ps.main;
-                main.startSizeMultiplier = g.Size * Mathf.Lerp(0.8f, GlowSizeHot, k);
+                main.startSizeMultiplier = g.Size * Mathf.Lerp(0.8f, GlowSizeHot, k) * Mathf.Sqrt(spent);
                 main.startColor = tint;
                 if (on && !_glowing) g.Ps.Play(false);
                 else if (!on && _glowing) g.Ps.Stop(false, ParticleSystemStopBehavior.StopEmitting);
@@ -203,6 +206,21 @@ namespace MeridianWorks
             _glowing = on;
             Heat = k;
         }
+
+        private void KillGlow()
+        {
+            Transform? nose = FindDeep(transform, NoseGlowName);
+            if (nose != null)
+                foreach (ParticleSystem ps in nose.GetComponentsInChildren<ParticleSystem>(true))
+                    ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            foreach (Glow g in _glow)
+                if (g.Ps != null) g.Ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            _glowing = false;
+            Heat = 0f;
+        }
+
+        internal float SpentBoost { get; set; }
+        private const float SpentRateGain = 1.5f;
 
         internal float Heat { get; private set; }
 

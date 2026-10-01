@@ -10,9 +10,11 @@ namespace MeridianWorks
         internal const string GUID = "com.meridianworks";
         internal const string Name = "Meridian Works";
 
-        internal const string Version = "1.2.0.0";
+        internal const string Version = "1.2.1.0";
 
         internal const string BlueprinterGUID = "com.nikkorap.blueprinter";
+
+        internal const string LoadoutInjectorGUID = "neutral.loadoutinjector";
 
         internal const string BundleName = "meridianworks.nobp";
 

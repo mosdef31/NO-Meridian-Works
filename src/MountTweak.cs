@@ -106,6 +106,11 @@ namespace MeridianWorks
                   new Offset { Move = new Vector3(0.074f, 0.009f, 0.023f) } },
                 { "Aryx_KingRaptor | Pylon_Weaponbay_R | MeridianBlackArrow_internalx4_tandem_tight",
                   new Offset { Move = new Vector3(-0.074f, 0.009f, 0.023f) } },
+
+                { "Multirole1 | gearbay_L/sideWeaponBay_L | MeridianSRM20_internal",
+                  new Offset { Move = new Vector3(0f, 0f, -0.050f), Rail = 0.150f } },
+                { "Multirole1 | gearbay_R/sideWeaponBay_R | MeridianSRM20_internal",
+                  new Offset { Move = new Vector3(0f, 0f, -0.050f), Rail = 0.150f } },
             };
 
         internal static bool HasAuthoredSeat(Hardpoint? hardpoint, WeaponMount? mount)

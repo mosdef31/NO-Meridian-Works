@@ -140,7 +140,8 @@ namespace MeridianWorks
     [HarmonyPatch(typeof(AircraftParameters), nameof(AircraftParameters.GetRandomStandardLoadout))]
     internal static class AircraftParameters_GetRandomStandardLoadout_MeridianPatch
     {
-        [HarmonyPostfix]
+
+        [HarmonyPostfix, HarmonyAfter(PluginInfo.LoadoutInjectorGUID)]
         private static void Postfix(AircraftDefinition definition, FactionHQ hq,
                                     ref StandardLoadout __result)
         {
